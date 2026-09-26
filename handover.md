@@ -95,4 +95,4 @@ pytest tests/ -q
 
 ## Key commit
 
-*(Update hash after push.)* Initial capstone scaffold: ARCHITECTURE, AGENT, handover, ported physics-residual-anomaly stack.
+`14ab735` — Scaffold Track B capstone: hybrid drivetrain digital twin (ARCHITECTURE, AGENT, handover, ported physics-residual-anomaly stack, 35 tests, pre-commit).
