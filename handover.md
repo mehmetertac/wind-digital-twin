@@ -1,8 +1,8 @@
 # handover.md
 
-**Last updated:** 2026-09-26
+**Last updated:** 2026-09-27
 
-Track B capstone scaffold: hybrid drivetrain digital twin (physics thermal + residual + anomaly). Week 10 Day 1 — landscape doc + repo port from `wind-turbine-anomaly`.
+Track B capstone scaffold: hybrid drivetrain digital twin (physics thermal + residual + anomaly). Week 10 — PINN deep read + heat-equation toy spec.
 
 ---
 
@@ -16,7 +16,8 @@ Track B capstone scaffold: hybrid drivetrain digital twin (physics thermal + res
 | Scripts: synthetic EDP, download check, gearbox thermal run | Done |
 | Tests + pre-commit (file size + pytest) | Done |
 | [AGENT.md](AGENT.md) agent rules | Done |
-| PINN heat-equation toy notebook | Not started |
+| [docs/reading_notes.md](docs/reading_notes.md) — Raissi 2019 PINN notes + drivetrain transfer + toy spec | Done |
+| PINN heat-equation toy notebook | Not started (implement per reading_notes) |
 | Learned residual upgrade | Not started |
 | Week 11 RUL + conformal + deployment | Not started |
 | [WEEK_10_REFLECTION.md](WEEK_10_REFLECTION.md) | Not started (Friday) |
@@ -31,6 +32,7 @@ wind-digital-twin/
 ├── handover.md
 ├── README.md
 ├── docs/ARCHITECTURE.md
+├── docs/reading_notes.md
 ├── data/raw/edp/          # EDP CSVs or synthetic (--force generator)
 ├── src/wind_digital_twin/
 │   ├── config.py
@@ -87,7 +89,7 @@ pytest tests/ -q
 
 ## Suggested next step
 
-1. PINN heat-equation toy (≤2 papers read; notebook in `notebooks/`).
+1. Implement PINN heat-equation toy per [docs/reading_notes.md](docs/reading_notes.md) (notebook in `notebooks/`, optional `[pinn]` extra with `torch`).
 2. Replace or augment linear physics error with a **learned residual model**.
 3. Draft `WEEK_10_REFLECTION.md` (uncertainty, leakage, maintenance terms).
 
@@ -95,4 +97,4 @@ pytest tests/ -q
 
 ## Key commit
 
-`14ab735` — Scaffold Track B capstone: hybrid drivetrain digital twin (ARCHITECTURE, AGENT, handover, ported physics-residual-anomaly stack, 35 tests, pre-commit).
+`82b104c` — PINN reading notes (Raissi 2019), drivetrain transfer section, 1-D heat toy spec; handover and AGENT doc map updated.

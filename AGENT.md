@@ -11,6 +11,7 @@ Guidance for agents working in **wind-digital-twin**. Read this file first, then
 | [README.md](README.md) | Entry point: setup, architecture link, maintenance interpretation |
 | [handover.md](handover.md) | Current status, repo layout, module API, week roadmap |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Digital twin taxonomy, fidelity levels, capstone pipeline diagram |
+| [docs/reading_notes.md](docs/reading_notes.md) | PINN paper notes (Raissi 2019), drivetrain transfer, heat-equation toy spec |
 | [data/README.md](data/README.md) | EDP provenance, synthetic fallback |
 | [notebooks/README.md](notebooks/README.md) | Notebooks are thin drivers only (PINN toy, EDA) |
 | [src/wind_digital_twin/data/](src/wind_digital_twin/data/) | Load, clean, synthetic EDP |
