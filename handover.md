@@ -97,4 +97,4 @@ pytest tests/ -q
 
 ## Key commit
 
-`82b104c` — PINN reading notes (Raissi 2019), drivetrain transfer section, 1-D heat toy spec; handover and AGENT doc map updated.
+`1ba0bde` — PINN reading notes (Raissi 2019), drivetrain transfer section, 1-D heat toy spec; handover and AGENT doc map updated.
