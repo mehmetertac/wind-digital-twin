@@ -12,6 +12,10 @@ python -m venv .venv
 pip install -e ".[dev]"
 pre-commit install
 
+# Optional: PINN heat toy (PyTorch; CI stays torch-free by default)
+pip install -e ".[pinn]"
+python scripts/run_pinn_heat.py
+
 python scripts/generate_synthetic_edp.py --force
 python scripts/download_edp.py --check
 python scripts/run_gearbox_thermal.py
@@ -19,6 +23,14 @@ pytest tests/ -q
 ```
 
 Real EDP data: see [data/README.md](data/README.md) and `python scripts/download_edp.py --instructions`.
+
+## Why physics-informed? (PINN ablation)
+
+Week 10 guardrail: a 1-D heat equation \(u_t = \alpha u_{xx}\) on \([0,1]^2\) with sparse **initial and boundary** labels only (no interior sensors). A plain MLP fits those points; with **physics loss off** (`w_f=0`) it does not recover the true decay in the interior (relative L2 **~2.7×10⁻¹** vs analytical). The same architecture with a **PDE residual** at collocation points (`w_f=1`) matches the analytical solution (**~2.7×10⁻³** relative L2).
+
+![PINN vs data-only vs analytical heat solution](docs/figures/pinn_ablation.png)
+
+That pattern is what we want on SCADA: sparse temperature observations plus a **thermal ODE/physics consistency** term, not interpolation between sensors. Code: [`src/wind_digital_twin/pinn/`](src/wind_digital_twin/pinn/), [`scripts/run_pinn_heat.py`](scripts/run_pinn_heat.py), notebook [`notebooks/pinn_heat_toy.ipynb`](notebooks/pinn_heat_toy.ipynb). Paper notes: [docs/reading_notes.md](docs/reading_notes.md).
 
 ## Architecture (summary)
 

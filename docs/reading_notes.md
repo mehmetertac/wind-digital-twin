@@ -179,4 +179,4 @@ Start with \(w_f = w_0 = w_b = 1\) (tune if imbalanced).
 
 ### Framework note
 
-[`pyproject.toml`](../pyproject.toml) does not yet list `torch`. When implementing the notebook, add optional extra e.g. `pinn = ["torch>=2.0"]` so default installs and CI stay lightweight.
+Optional extra in [`pyproject.toml`](../pyproject.toml): `pip install -e ".[pinn]"` installs `torch>=2.0`; default installs and CI stay torch-free.
