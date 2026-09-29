@@ -103,4 +103,4 @@ pytest tests/ -q
 
 ## Key commit
 
-Pending push — PINN heat-equation module, physics-off ablation, README figure (`docs/figures/pinn_ablation.png`), `[pinn]` extra in `pyproject.toml`.
+`23fbf50` — 1-D heat PINN toy, physics-off ablation figure, optional `[pinn]` extra; PINN tests skip when torch is unavailable.
