@@ -11,13 +11,14 @@ Guidance for agents working in **wind-digital-twin**. Read this file first, then
 | [README.md](README.md) | Entry point: setup, architecture link, maintenance interpretation |
 | [handover.md](handover.md) | Current status, repo layout, module API, week roadmap |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Digital twin taxonomy, fidelity levels, capstone pipeline diagram |
-| [docs/reading_notes.md](docs/reading_notes.md) | PINN paper notes (Raissi 2019), drivetrain transfer, heat-equation toy spec |
+| [docs/reading_notes.md](docs/reading_notes.md) | Deep reads (Raissi 2019, Pujana 2023), abstract skims, PINN toy spec |
+| [docs/SENSOR_FUSION.md](docs/SENSOR_FUSION.md) | EDP SCADA signature inventory + fused residual-model feature spec |
 | [src/wind_digital_twin/pinn/](src/wind_digital_twin/pinn/) | 1-D heat PINN + ablation plots |
 | [scripts/run_pinn_heat.py](scripts/run_pinn_heat.py) | Train PINN vs data-only; writes `docs/figures/pinn_ablation.png` |
 | [data/README.md](data/README.md) | EDP provenance, synthetic fallback |
 | [notebooks/README.md](notebooks/README.md) | Notebooks are thin drivers only (PINN toy, EDA) |
 | [src/wind_digital_twin/data/](src/wind_digital_twin/data/) | Load, clean, synthetic EDP |
-| [src/wind_digital_twin/physics/](src/wind_digital_twin/physics/) | Gearbox thermal normal-behavior model |
+| [src/wind_digital_twin/physics/](src/wind_digital_twin/physics/) | Lumped ODE gearbox thermal model (`lumped_ode.py`, `gearbox_thermal.py`) |
 | [src/wind_digital_twin/residual/](src/wind_digital_twin/residual/) | Residual feature engineering |
 | [src/wind_digital_twin/anomaly/](src/wind_digital_twin/anomaly/) | Physics-hybrid anomaly detector |
 | [src/wind_digital_twin/eval/](src/wind_digital_twin/eval/) | Lead-time protocol, plots |

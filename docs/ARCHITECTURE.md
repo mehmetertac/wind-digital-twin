@@ -64,8 +64,8 @@ flowchart LR
 
 **Out of scope (later threads)**
 
-- Vibration / CWRU fusion (sensor-fusion week material)
-- Electrical subsystem, pitch/yaw twins
+- Vibration / CWRU fusion (separate CMS sensor class; see [SENSOR_FUSION.md](SENSOR_FUSION.md) for EDP limits)
+- Full electrical subsystem or pitch/yaw twins (pitch/RPM/grid channels may **condition** gearbox thermal features—same doc)
 - Closed-loop control or OEM proprietary simulators
 - Full-farm aero-elastic digital twin
 
@@ -75,7 +75,7 @@ flowchart LR
 
 | Piece | Anomaly repo (Week 6) | This capstone |
 |-------|----------------------|---------------|
-| Physics | Ridge/GBM steady-state thermal | PINN-informed or constrained thermal (Week 10 toy + optional upgrade) |
+| Physics | Ridge/GBM steady-state thermal | **Lumped thermal ODE** (τ + equilibrium gains); Ridge baseline for RMSE; PINN heat **toy** only |
 | Residual | Implicit in IF features | Explicit **learned residual model** |
 | Detector | IF on residual windows | Same baseline → calibrated thresholds + richer scoring |
 | Uncertainty | Threshold percentile only | **Conformal intervals** on scores/RUL (Week 11) |
@@ -90,7 +90,7 @@ Ported code lives under `src/wind_digital_twin/{physics,residual,anomaly}` — u
 | Path | Role |
 |------|------|
 | [`src/wind_digital_twin/data/`](../src/wind_digital_twin/data/) | EDP load, clean, synthetic fallback |
-| [`src/wind_digital_twin/physics/`](../src/wind_digital_twin/physics/) | Gearbox thermal normal-behavior model |
+| [`src/wind_digital_twin/physics/`](../src/wind_digital_twin/physics/) | Lumped ODE gearbox thermal model + linear baseline |
 | [`src/wind_digital_twin/residual/`](../src/wind_digital_twin/residual/) | Residual feature engineering |
 | [`src/wind_digital_twin/anomaly/`](../src/wind_digital_twin/anomaly/) | Physics-hybrid detector (IF) |
 | [`src/wind_digital_twin/eval/`](../src/wind_digital_twin/eval/) | Lead time, false alarms, plots |
@@ -103,7 +103,9 @@ Ported code lives under `src/wind_digital_twin/{physics,residual,anomaly}` — u
 | Week | Deliverable |
 |------|-------------|
 | **10 (this scaffold)** | Architecture doc, repo layout, ported physics + hybrid baseline, tests + hooks |
-| **10 (PINN guardrail)** | Read ≤2 papers; heat-equation PINN **toy** in `notebooks/`; do not block capstone on theory |
+| **10 (PINN guardrail)** | Read ≤2 papers (**done:** Raissi 2019 + Pujana 2023 notes in [reading_notes.md](reading_notes.md)); heat-equation PINN **toy** in `notebooks/` |
+| **10 (sensor fusion design)** | [SENSOR_FUSION.md](SENSOR_FUSION.md) — EDP channel inventory + residual-model feature spec (implementation pending) |
+| **10 (ODE backbone)** | Lumped-parameter thermal ODE in `physics/lumped_ode.py`; optional capped NN on \(T_{\mathrm{eq}}\) (`--nn-correction`) |
 | **10 (residual)** | Learned residual model replacing/adjacent to linear physics error |
 | **11** | RUL head, conformal prediction intervals, deployment README + minimal serve path |
 | **Friday** | [`WEEK_10_REFLECTION.md`](../WEEK_10_REFLECTION.md) — honest uncertainty + leakage checklist + maintenance reading |
@@ -112,6 +114,6 @@ Ported code lives under `src/wind_digital_twin/{physics,residual,anomaly}` — u
 
 ## References (light touch)
 
-- Karniadakis et al. — Physics-informed neural networks (theory; capstone stays applied)
-- OEM / industry: component-level hybrid twins for drivetrain monitoring (predictive maintenance narratives)
+- [reading_notes.md](reading_notes.md) — deep reads (Raissi 2019, Pujana 2023) + abstract skims (Moghadam, Dimitrov, Tautz-Weinert)
+- [SENSOR_FUSION.md](SENSOR_FUSION.md) — SCADA signature inventory and fused residual features
 - Dataset: EDP Open Data / Hack the Wind SCADA (see [`data/README.md`](../data/README.md))

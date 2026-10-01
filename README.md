@@ -45,7 +45,7 @@ flowchart LR
 
 ## What this means in maintenance terms
 
-- **Physics layer:** “At this power and ambient, the gearbox *should* be this hot.” When actual temperature runs **hotter than expected** (negative residual), that is extra heat the operating point does not explain — a common precursor to lubrication or bearing problems.
+- **Physics layer:** A **lumped thermal ODE** predicts expected oil/bearing temperature from power, RPM, and nacelle proxy (with time constant τ on healthy data). “At this load and cooling context, the gearbox *should* be this hot.” When actual temperature runs **hotter than expected** (negative residual), that is extra heat the operating point does not explain — a common precursor to lubrication or bearing problems.
 - **Residual / detector:** Sustained “hotter than expected” patterns trigger an **inspection window** measured in **days before logged failure**, not a single spike from a production ramp.
 - **Uncertainty (Week 10 baseline):** Healthy validation RMSE and score thresholds from **healthy training only**; Week 11 adds **conformal intervals** so alarms carry an explicit false-alarm / coverage story.
 - **Evaluation:** Training excludes the **90 days before failure**; metrics are **time-ordered** so you do not accidentally train on pre-failure drift.

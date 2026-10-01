@@ -1,6 +1,6 @@
-# PINN reading notes (Week 10)
+# Reading notes (Week 10)
 
-Deep read of one foundational paper for the capstone PINN guardrail. Toy implementation spec is at the end.
+Deep reads: Raissi 2019 (PINN guardrail) and Pujana et al. 2023 (hybrid drivetrain twin). Abstract-level cites close the ≤2-paper budget. PINN toy spec is at the end. Sensor-fusion feature contract: [SENSOR_FUSION.md](SENSOR_FUSION.md).
 
 ---
 
@@ -180,3 +180,90 @@ Start with \(w_f = w_0 = w_b = 1\) (tune if imbalanced).
 ### Framework note
 
 Optional extra in [`pyproject.toml`](../pyproject.toml): `pip install -e ".[pinn]"` installs `torch>=2.0`; default installs and CI stay torch-free.
+
+---
+
+## Deep read #2: hybrid drivetrain digital twin (architecture)
+
+### Citation and why this paper
+
+**Pujana, Esteras, Maqueda, Perea & Calvez (2023),** “Hybrid-Model-Based Digital Twin of the Drivetrain of a Wind Turbine and Its Application for Failure Synthetic Data Generation,” *Energies* **16**(2), 861. [https://doi.org/10.3390/en16020861](https://doi.org/10.3390/en16020861)
+
+Second deep read for the capstone: an **operator/lab hybrid twin** on a real wind farm (Engie), focused on the **power-conversion / DFIG drivetrain**, not an OEM gearbox-oil thermal recipe. Read for **architecture** (what is measured, who models what, how failures are checked)—not Simulink or GAN math.
+
+### What they fuse (sensors / data)
+
+| Source | Role in the twin |
+|--------|------------------|
+| **SCADA (3 years, one turbine)** | Calibrate and run a physics-based drivetrain model against real operation |
+| **Electrical + thermal SCADA proxies** | Stator/generator-side temperatures, powers, and converter-related quantities tied to the Simulink DFIG + back-to-back converter model |
+| **Labeled failure log** | Ground truth for validation (worked case: **stator winding overtemperature**) |
+
+**Not fused:** CMS vibration, high-rate accelerometers, or oil debris. This is **slow SCADA + physics**, same class as EDP Wind Farm 1—not a multimodal vibration twin.
+
+### Physics vs ML split
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Physics (Simulink drivetrain)** | Preserves design relationships (DFIG, converter); **trained/calibrated** on SCADA so parameters match the physical asset |
+| **Hybrid residual / mismatch** | Real SCADA vs twin output exposes anomalies that pure simulation would miss |
+| **ML — classification** | Detect and **classify** failure/anomaly conditions from twin + data features |
+| **ML — generative (stochastic)** | **Synthetic failure trajectories** from real anomalies the farm never logged (data-scarcity for rare events) |
+
+Pattern aligned with this repo: **physics owns expected behavior**; **ML owns what physics cannot explain or label**. We do **not** copy their converter block diagram or synthetic-data GAN—gearbox **oil/bearing thermal** is a different subsystem.
+
+### Validation against failures
+
+- Contrast on **Engie operational data with labelled failure conditions**, not simulation-only demos.
+- Primary narrative: detect/classify **stator overtemperature** and related drivetrain anomalies; generative arm augments **failure modes with few real examples**.
+
+Capstone parallel: T01/T06 gearbox events in [`config.py`](../src/wind_digital_twin/config.py) + 90-day buffer + time-ordered eval ([`eval/protocol.py`](../src/wind_digital_twin/eval/protocol.py))—same **honest labelled-failure** discipline, different component.
+
+### Transfer to this capstone
+
+| Their twin | This repo |
+|------------|-----------|
+| Simulink DFIG + converter | [`physics/gearbox_thermal.py`](../src/wind_digital_twin/physics/gearbox_thermal.py) steady-state thermal map \(P, \mathrm{RPM}, T_{\mathrm{nac}} \rightarrow T_{\mathrm{oil/bear}}\) |
+| Twin vs SCADA mismatch | **Thermal residual** \(=\) predicted − actual; degradation = hotter than expected |
+| ML on anomalies + synthetic failures | **Learned residual model** (Week 10+, not started) + existing IF on residual windows |
+| Electrical failure case study | Gearbox pump/bearing failures; electrical SCADA as **context** only ([SENSOR_FUSION.md](SENSOR_FUSION.md)) |
+
+**Do not over-claim:** Pujana et al. is **not** Vestas/GE/SGRE proprietary gearbox oil monitoring; it supports the **hybrid digital-twin product story**, not a drop-in thermal equation.
+
+---
+
+## Abstract skims (reading budget closed)
+
+One paragraph each—enough to cite in architecture/reflection docs; not implemented in code.
+
+### Moghadam, Rebouças & Nejad (2021) — torsional gearbox twin
+
+*Forschung im Ingenieurwesen* **85**, 273–286. [https://doi.org/10.1007/s10010-021-00468-9](https://doi.org/10.1007/s10010-021-00468-9)
+
+**Claim:** Multi-DOF **torsional** drivetrain digital twin; online identification from **torque/torsional response** already available to the turbine control/monitoring stack—**no new sensors**; contact stress feeds **gearbox RUL** via stress–life degradation.
+
+**Why cite:** OEM-style **component-level predictive** twin on the gearbox load path; almost pure **physics + identification**, minimal ML—contrasts with our SCADA-thermal + ML residual stack.
+
+### Moghadam & Nejad (2022) — uncertainty on the same twin
+
+*Mechanical Systems and Signal Processing* **162**, 108087. [https://doi.org/10.1016/j.ymssp.2021.108087](https://doi.org/10.1016/j.ymssp.2021.108087)
+
+**Claim:** Floating-turbine drivetrain DT under **normal, faulty, and overload** regimes; **Monte Carlo** propagation for **confidence intervals** on stress/RUL estimates.
+
+**Why cite:** Week 11 **conformal / interval** narrative—shows industry twins expose uncertainty explicitly; we are not copying their torsional model.
+
+### Dimitrov, Kelly, Vignaroli & Berg (2018) — surrogate modeling
+
+“From wind to loads: wind turbine load simulations across diverse terrains,” *Wind Energy* **21**, 569–585. [https://doi.org/10.1002/we.2187](https://doi.org/10.1002/we.2187)
+
+**Claim:** High-fidelity aero-elastic/load database compressed into a **cheap site-specific surrogate** for design and analysis.
+
+**Why cite:** **Surrogate pattern** at fleet scale; our per-turbine Ridge/GBM thermal map is a **low-fidelity surrogate** of a lumped thermal network—same “replace expensive sim with fitted model” idea.
+
+### Tautz-Weinert & Watson (2016) — SCADA CM review
+
+“Using SCADA data for wind turbine condition monitoring – a review,” *IET Renewable Power Generation* **10**, 281–291. [https://doi.org/10.1049/iet-rpg.2015.0029](https://doi.org/10.1049/iet-rpg.2015.0029)
+
+**Claim:** Surveys what **10-minute (and slower) SCADA** can support for CM, and where **vibration CMS** is a separate sensor class with different physics and sampling.
+
+**Why cite:** Justifies honest limits in [SENSOR_FUSION.md](SENSOR_FUSION.md)—EDP has no CMS; thermal + electrical + slow mechanical fusion only.

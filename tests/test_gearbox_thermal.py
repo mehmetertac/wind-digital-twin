@@ -6,34 +6,13 @@ import numpy as np
 import pandas as pd
 
 from wind_digital_twin.config import POWER_COLUMN, THERMAL_DRIVER_COLUMNS
+from tests.thermal_fixtures import synthetic_thermal_df as _synthetic_thermal_df
 from wind_digital_twin.physics.gearbox_thermal import (
     fit_gearbox_thermal,
     fit_gearbox_thermal_with_selection,
     healthy_train_validate_split,
     validate_thermal_model,
 )
-
-
-def _synthetic_thermal_df(n: int = 500, seed: int = 42) -> pd.DataFrame:
-    """Build SCADA-like rows with known thermal physics."""
-    rng = np.random.default_rng(seed)
-    idx = pd.date_range("2016-01-01", periods=n, freq="10min", tz="UTC")
-    power = rng.uniform(200, 1800, n)
-    rpm = 8.0 + 0.004 * power + rng.normal(0, 0.2, n)
-    nac = 15.0 + rng.normal(0, 2.0, n)
-    load = power / 2000.0
-    oil = 44.0 + 8.0 * load + 0.15 * nac + rng.normal(0, 0.3, n)
-    bear = 49.0 + 10.0 * load + 0.12 * nac + rng.normal(0, 0.3, n)
-    return pd.DataFrame(
-        {
-            "Gear_Oil_Temp_Avg": oil,
-            "Gear_Bear_Temp_Avg": bear,
-            POWER_COLUMN: power,
-            "Rtr_RPM_Avg": rpm,
-            "Nac_Temp_Avg": nac,
-        },
-        index=idx,
-    )
 
 
 def test_fit_and_residual_near_zero_on_train():
@@ -87,7 +66,9 @@ def test_model_selection_returns_info():
     model, train_df, val_df, info = fit_gearbox_thermal_with_selection(
         df, "Gear_Bear_Temp_Avg", driver_columns=THERMAL_DRIVER_COLUMNS
     )
-    assert info["chosen_model"] in ("linear", "gbm")
+    assert info["chosen_model"] == "lumped_ode"
+    assert "linear_val_rmse" in info
+    assert "ode_val_rmse" in info
     assert info["train_rows"] > 0
     assert info["val_rows"] > 0
     preds = model.predict(df)

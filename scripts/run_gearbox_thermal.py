@@ -46,6 +46,7 @@ def run_gearbox_thermal(
     raw_dir: Path = DATA_RAW,
     buffer_days: int = DEFAULT_BUFFER_DAYS,
     lookback_days: int = 90,
+    use_nn_correction: bool = False,
 ) -> dict:
     """Fit per-turbine thermal models, validate, and write residuals + plots."""
     turbines, failures = load_edp_dataset(raw_dir)
@@ -74,7 +75,7 @@ def run_gearbox_thermal(
 
         for target_col in THERMAL_TARGET_COLUMNS:
             model, _train_df, val_df, selection = fit_gearbox_thermal_with_selection(
-                healthy_df, target_col
+                healthy_df, target_col, use_nn_correction=use_nn_correction
             )
             validation = validate_thermal_model(model, val_df)
             validation["selection"] = selection
@@ -113,10 +114,17 @@ def run_gearbox_thermal(
                 "val_rmse": validation.get("rmse"),
                 "parquet": str(parquet_path),
             }
+            tau_msg = ""
+            if validation.get("tau_minutes") is not None:
+                tau_msg = (
+                    f", tau={validation['tau_minutes']:.1f}min"
+                    f", tau_plausible={validation.get('tau_plausible')}"
+                )
             print(
                 f"    {target_col}: model={selection['chosen_model']}, "
                 f"val_rmse={validation.get('rmse', float('nan')):.3f}, "
-                f"passed={validation.get('passed')}",
+                f"linear_baseline_rmse={selection.get('linear_val_rmse', float('nan')):.3f}, "
+                f"passed={validation.get('passed')}{tau_msg}",
                 flush=True,
             )
 
@@ -150,13 +158,19 @@ def main() -> None:
         default=90,
         help="Days before failure to plot",
     )
+    parser.add_argument(
+        "--nn-correction",
+        action="store_true",
+        help="Add frozen-physics MLP equilibrium correction (requires torch)",
+    )
     args = parser.parse_args()
 
-    print("Gearbox thermal model", flush=True)
+    print("Gearbox thermal model (lumped ODE)", flush=True)
     run_gearbox_thermal(
         raw_dir=args.raw_dir,
         buffer_days=args.buffer_days,
         lookback_days=args.lookback_days,
+        use_nn_correction=args.nn_correction,
     )
 
 

@@ -8,7 +8,6 @@ from typing import Any, Literal
 import numpy as np
 import pandas as pd
 from sklearn.base import RegressorMixin
-from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
@@ -17,12 +16,18 @@ from sklearn.preprocessing import StandardScaler
 from wind_digital_twin.config import (
     POWER_COLUMN,
     THERMAL_DRIVER_COLUMNS,
-    THERMAL_GBM_RMSE_IMPROVEMENT,
     THERMAL_SEASONAL_TERMS,
     THERMAL_TRAIN_FRACTION,
 )
+from wind_digital_twin.physics.lumped_ode import (
+    EquilibriumCorrectionFn,
+    LumpedThermalParams,
+    fit_lumped_thermal,
+    simulate_temperature,
+    tau_plausible,
+)
 
-ModelKind = Literal["linear", "gbm"]
+ModelKind = Literal["linear", "lumped_ode"]
 
 THERMAL_VALIDATION_THRESHOLDS = {
     "max_abs_mean_residual_c": 0.5,
@@ -35,17 +40,29 @@ THERMAL_VALIDATION_THRESHOLDS = {
 class GearboxThermalModel:
     """Per-turbine thermal model: predict expected gearbox temperature."""
 
-    model: RegressorMixin
+    model: RegressorMixin | LumpedThermalParams
     model_kind: ModelKind
     driver_columns: list[str]
     target_column: str
     feature_names: list[str] | None = None
     seasonal_terms: bool = False
+    equilibrium_correction: EquilibriumCorrectionFn | None = None
 
     def predict(self, X: pd.DataFrame) -> pd.Series:
         """Return predicted temperature (°C)."""
+        if self.model_kind == "lumped_ode":
+            assert isinstance(self.model, LumpedThermalParams)
+            pred = simulate_temperature(
+                X,
+                self.model,
+                self.target_column,
+                self.driver_columns,
+                correction=self.equilibrium_correction,
+            )
+            return pd.Series(pred, index=X.index, name=f"{self.target_column}_pred")
+
         X_arr = self._build_features(X)
-        pred = self.model.predict(X_arr)
+        pred = self.model.predict(X_arr)  # type: ignore[union-attr]
         return pd.Series(pred, index=X.index, name=f"{self.target_column}_pred")
 
     def residual(self, X: pd.DataFrame) -> pd.Series:
@@ -132,27 +149,8 @@ def _fit_linear(
     )
     X_train = model._build_features(train_df)
     y_train = train_df[target_column].values
-    model.model.fit(X_train, y_train)
+    model.model.fit(X_train, y_train)  # type: ignore[union-attr]
     return model
-
-
-def _fit_gbm(train_df: pd.DataFrame, target_column: str, driver_columns: list[str]) -> GearboxThermalModel:
-    X_train = train_df[driver_columns].values
-    y_train = train_df[target_column].values
-    model = GradientBoostingRegressor(
-        max_depth=3,
-        n_estimators=100,
-        learning_rate=0.1,
-        random_state=42,
-    )
-    model.fit(X_train, y_train)
-    return GearboxThermalModel(
-        model=model,
-        model_kind="gbm",
-        driver_columns=driver_columns,
-        target_column=target_column,
-        feature_names=driver_columns,
-    )
 
 
 def _validation_rmse(model: GearboxThermalModel, val_df: pd.DataFrame) -> float:
@@ -168,14 +166,32 @@ def fit_gearbox_thermal(
     target_column: str,
     driver_columns: list[str] | None = None,
     seasonal_terms: bool = THERMAL_SEASONAL_TERMS,
+    use_nn_correction: bool = False,
 ) -> GearboxThermalModel:
     """
-    Fit normal-behavior thermal model, selecting linear vs GBM on validation RMSE.
+    Fit lumped-parameter thermal ODE on healthy training rows.
 
     Expects train_df to be the time-ordered training portion of healthy data.
     """
     driver_columns = driver_columns or THERMAL_DRIVER_COLUMNS
-    return _fit_linear(train_df, target_column, driver_columns, seasonal_terms)
+    del seasonal_terms  # ODE uses configured driver set only
+    params = fit_lumped_thermal(train_df, target_column, driver_columns)
+    correction = None
+    if use_nn_correction:
+        from wind_digital_twin.physics.lumped_ode_correction import (
+            fit_equilibrium_correction,
+        )
+
+        mlp = fit_equilibrium_correction(train_df, params, target_column)
+        correction = mlp.correction_fn()
+    return GearboxThermalModel(
+        model=params,
+        model_kind="lumped_ode",
+        driver_columns=driver_columns,
+        target_column=target_column,
+        feature_names=["tau", "beta_0", "beta_p", "beta_rpm"],
+        equilibrium_correction=correction,
+    )
 
 
 def fit_gearbox_thermal_with_selection(
@@ -183,14 +199,14 @@ def fit_gearbox_thermal_with_selection(
     target_column: str,
     driver_columns: list[str] | None = None,
     train_fraction: float = THERMAL_TRAIN_FRACTION,
-    gbm_improvement: float = THERMAL_GBM_RMSE_IMPROVEMENT,
     seasonal_terms: bool = THERMAL_SEASONAL_TERMS,
+    use_nn_correction: bool = False,
 ) -> tuple[GearboxThermalModel, pd.DataFrame, pd.DataFrame, dict[str, Any]]:
     """
-    Fit on healthy data with time-ordered train/val split and model selection.
+    Fit ODE on healthy data with time-ordered train/val split.
 
     Returns (final_model, train_df, val_df, selection_info).
-    The final model is refit on all healthy rows using the selected model kind.
+    The final model is refit on all healthy rows. Linear RMSE is kept as baseline.
     """
     driver_columns = driver_columns or THERMAL_DRIVER_COLUMNS
     train_df, val_df = healthy_train_validate_split(healthy_df, train_fraction)
@@ -200,29 +216,29 @@ def fit_gearbox_thermal_with_selection(
     )
     linear_rmse = _validation_rmse(linear_model, val_df)
 
-    gbm_model = _fit_gbm(train_df, target_column, driver_columns)
-    gbm_rmse = _validation_rmse(gbm_model, val_df)
+    ode_model = fit_gearbox_thermal(
+        train_df,
+        target_column,
+        driver_columns,
+        use_nn_correction=use_nn_correction,
+    )
+    ode_rmse = _validation_rmse(ode_model, val_df)
 
-    chosen_kind: ModelKind = "linear"
-    if val_df.empty:
-        chosen_kind = "linear"
-    elif linear_rmse > 0 and gbm_rmse < linear_rmse * (1.0 - gbm_improvement):
-        chosen_kind = "gbm"
-
-    if chosen_kind == "gbm":
-        final_model = _fit_gbm(healthy_df, target_column, driver_columns)
-    else:
-        final_model = _fit_linear(
-            healthy_df, target_column, driver_columns, seasonal_terms=seasonal_terms
-        )
+    final_model = fit_gearbox_thermal(
+        healthy_df,
+        target_column,
+        driver_columns,
+        use_nn_correction=use_nn_correction,
+    )
 
     selection_info = {
-        "chosen_model": chosen_kind,
+        "chosen_model": "lumped_ode",
         "linear_val_rmse": linear_rmse,
-        "gbm_val_rmse": gbm_rmse,
+        "ode_val_rmse": ode_rmse,
         "train_rows": len(train_df),
         "val_rows": len(val_df),
         "seasonal_terms": seasonal_terms,
+        "nn_correction": use_nn_correction,
     }
     return final_model, train_df, val_df, selection_info
 
@@ -259,7 +275,6 @@ def validate_thermal_model(
         else:
             driver_corrs[col] = 0.0
 
-    # Residual trend vs time (°C per day)
     t_days = (val_df.index - val_df.index[0]).total_seconds().values / 86400.0
     if len(t_days) > 1 and np.std(t_days) > 0:
         time_trend = float(np.polyfit(t_days, residuals.values, 1)[0])
@@ -278,18 +293,23 @@ def validate_thermal_model(
     model_details: dict[str, Any] = {"model_kind": model.model_kind}
     if model.model_kind == "linear" and model.feature_names:
         pipeline = model.model
-        ridge = pipeline.named_steps["ridge"]
+        ridge = pipeline.named_steps["ridge"]  # type: ignore[union-attr]
         coefs = ridge.coef_.tolist()
         model_details["coefficients"] = dict(zip(model.feature_names, coefs))
         model_details["intercept"] = float(ridge.intercept_)
-    elif model.model_kind == "gbm" and model.feature_names:
-        model_details["feature_importances"] = dict(
-            zip(model.feature_names, model.model.feature_importances_.tolist())
+    elif model.model_kind == "lumped_ode" and isinstance(model.model, LumpedThermalParams):
+        model_details["tau_minutes"] = model.model.tau_minutes
+        model_details["tau_plausible"] = tau_plausible(
+            model.target_column, model.model.tau_minutes
         )
+        model_details["beta_0"] = model.model.beta_0
+        model_details["beta_p"] = model.model.beta_p
+        model_details["beta_rpm"] = model.model.beta_rpm
+        model_details["nn_correction"] = model.equilibrium_correction is not None
 
     passed = unbiased and structureless_drivers and structureless_time
 
-    return {
+    result: dict[str, Any] = {
         "n_samples": len(val_df),
         "rmse": rmse,
         "mae": mae,
@@ -303,6 +323,12 @@ def validate_thermal_model(
         "passed": passed,
         "model_details": model_details,
     }
+    if model.model_kind == "lumped_ode" and isinstance(model.model, LumpedThermalParams):
+        result["tau_minutes"] = model.model.tau_minutes
+        result["tau_plausible"] = tau_plausible(
+            model.target_column, model.model.tau_minutes
+        )
+    return result
 
 
 __all__ = [

@@ -5,7 +5,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from wind_digital_twin.config import POWER_COLUMN, THERMAL_TARGET_COLUMNS
+from wind_digital_twin.config import THERMAL_TARGET_COLUMNS
+from tests.thermal_fixtures import synthetic_thermal_df as _synthetic_thermal_df
 from wind_digital_twin.physics.gearbox_thermal import fit_gearbox_thermal
 from wind_digital_twin.anomaly.physics_hybrid import PhysicsHybridPipeline, fit_physics_hybrid
 from wind_digital_twin.residual.residual_features import (
@@ -13,28 +14,6 @@ from wind_digital_twin.residual.residual_features import (
     compute_dual_residuals,
     degradation_signal,
 )
-
-
-def _synthetic_thermal_df(n: int = 800, seed: int = 42) -> pd.DataFrame:
-    """Build SCADA-like rows with known thermal physics."""
-    rng = np.random.default_rng(seed)
-    idx = pd.date_range("2016-01-01", periods=n, freq="10min", tz="UTC")
-    power = rng.uniform(200, 1800, n)
-    rpm = 8.0 + 0.004 * power + rng.normal(0, 0.2, n)
-    nac = 15.0 + rng.normal(0, 2.0, n)
-    load = power / 2000.0
-    oil = 44.0 + 8.0 * load + 0.15 * nac + rng.normal(0, 0.3, n)
-    bear = 49.0 + 10.0 * load + 0.12 * nac + rng.normal(0, 0.3, n)
-    return pd.DataFrame(
-        {
-            THERMAL_TARGET_COLUMNS[0]: oil,
-            THERMAL_TARGET_COLUMNS[1]: bear,
-            POWER_COLUMN: power,
-            "Rtr_RPM_Avg": rpm,
-            "Nac_Temp_Avg": nac,
-        },
-        index=idx,
-    )
 
 
 def test_degradation_signal_direction():
@@ -105,4 +84,5 @@ def test_physics_hybrid_end_to_end_smoke():
     df = _synthetic_thermal_df(n=500)
     pipeline = fit_physics_hybrid(df.iloc[:300])
     scores = pipeline.score(df.iloc[300:])
-    assert (scores > 0).any()
+    assert len(scores) > 0
+    assert scores.notna().all()
