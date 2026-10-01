@@ -109,4 +109,4 @@ pytest tests/ -q
 
 ## Key commit
 
-*(Update on next push with ODE backbone commit hash.)*
+`73b2b1c` — Lumped thermal ODE backbone, optional NN equilibrium correction, Week 10 reflection + sensor-fusion doc.
