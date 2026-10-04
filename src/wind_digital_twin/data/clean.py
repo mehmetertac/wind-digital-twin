@@ -11,21 +11,45 @@ from wind_digital_twin.utils import to_utc
 from wind_digital_twin.config import (
     DEFAULT_BUFFER_DAYS,
     FEATURE_COLUMNS,
+    FUSION_OPTIONAL_COLUMNS,
     GearboxFailure,
     MIN_POWER_KW,
     POWER_COLUMN,
 )
 
 
+def resolve_feature_columns(
+    df: pd.DataFrame,
+    base_columns: list[str] | None = None,
+    include_fusion_optional: bool = True,
+) -> list[str]:
+    """Core thermal columns plus optional fusion columns present in ``df``."""
+    base_columns = base_columns or FEATURE_COLUMNS
+    missing = [c for c in base_columns if c not in df.columns]
+    if missing:
+        raise ValueError(f"Missing SCADA columns: {missing}")
+    cols = list(base_columns)
+    if include_fusion_optional:
+        for col in FUSION_OPTIONAL_COLUMNS:
+            if col in df.columns and col not in cols:
+                cols.append(col)
+    return cols
+
+
 def clean_turbine_df(
     df: pd.DataFrame,
     feature_columns: list[str] | None = None,
     min_power_kw: float = MIN_POWER_KW,
+    include_fusion_optional: bool = True,
 ) -> pd.DataFrame:
     """Clean per-turbine SCADA: dedupe, select features, drop NaNs, optional power filter."""
-    feature_columns = feature_columns or FEATURE_COLUMNS
     out = df.copy()
     out = out[~out.index.duplicated(keep="first")].sort_index()
+    if feature_columns is None:
+        feature_columns = resolve_feature_columns(
+            out, include_fusion_optional=include_fusion_optional
+        )
+
     missing = [c for c in feature_columns if c not in out.columns]
     if missing:
         raise ValueError(f"Missing SCADA columns: {missing}")

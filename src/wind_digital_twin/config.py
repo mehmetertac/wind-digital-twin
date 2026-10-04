@@ -38,6 +38,23 @@ THERMAL_TRAIN_FRACTION = 0.8
 THERMAL_GBM_RMSE_IMPROVEMENT = 0.10
 THERMAL_SEASONAL_TERMS = False
 THERMAL_RESULTS_DIR = RESULTS_DIR / "physics_thermal"
+RESIDUAL_RESULTS_DIR = RESULTS_DIR / "residual"
+
+# Optional EDP columns for fusion (used when present in raw CSV; never imputed)
+FUSION_OPTIONAL_COLUMNS: list[str] = [
+    "Gen_RPM_Avg",
+    "Blds_PitchAngle_Avg",
+    "Grd_Prod_CurPhse1_Avg",
+    "Grd_Prod_CurPhse2_Avg",
+    "Grd_Prod_CurPhse3_Avg",
+    "Grd_Prod_VoltPhse1_Avg",
+    "Grd_Prod_VoltPhse2_Avg",
+    "Grd_Prod_VoltPhse3_Avg",
+    "Amb_Temp_Avg",
+]
+
+FUSION_MIN_RPM = 1.0
+HYBRID_RESIDUAL_DETECTOR = "hybrid_residual"
 
 # Lumped thermal ODE (10-min SCADA)
 THERMAL_GAP_RESET_HOURS = 6.0

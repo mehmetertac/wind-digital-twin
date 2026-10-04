@@ -8,6 +8,10 @@ import pandas as pd
 from wind_digital_twin.config import THERMAL_TARGET_COLUMNS
 from tests.thermal_fixtures import synthetic_thermal_df as _synthetic_thermal_df
 from wind_digital_twin.physics.gearbox_thermal import fit_gearbox_thermal
+from wind_digital_twin.anomaly.hybrid_residual_detector import (
+    HybridResidualPipeline,
+    fit_hybrid_residual_detector,
+)
 from wind_digital_twin.anomaly.physics_hybrid import PhysicsHybridPipeline, fit_physics_hybrid
 from wind_digital_twin.residual.residual_features import (
     build_residual_feature_frame,
@@ -86,3 +90,21 @@ def test_physics_hybrid_end_to_end_smoke():
     scores = pipeline.score(df.iloc[300:])
     assert len(scores) > 0
     assert scores.notna().all()
+
+
+def test_hybrid_residual_detector_scores_higher_on_degraded_data():
+    df = _synthetic_thermal_df(n=800)
+    train = df.iloc[:400]
+    test_healthy = df.iloc[400:600]
+    test_shifted = test_healthy.copy()
+    test_shifted[THERMAL_TARGET_COLUMNS[0]] += 6.0
+    test_shifted[THERMAL_TARGET_COLUMNS[1]] += 6.0
+
+    pipeline = fit_hybrid_residual_detector(train)
+    assert isinstance(pipeline, HybridResidualPipeline)
+
+    healthy_scores = pipeline.score(test_healthy)
+    degraded_scores = pipeline.score(test_shifted)
+    assert len(healthy_scores) > 0
+    assert len(degraded_scores) > 0
+    assert degraded_scores.mean() > healthy_scores.mean()

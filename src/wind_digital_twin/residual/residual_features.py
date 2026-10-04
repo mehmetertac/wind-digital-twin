@@ -55,6 +55,40 @@ def rolling_features(
     return pd.DataFrame(parts, index=series.index)
 
 
+def build_residual_feature_frame_from_series(
+    oil_residual: pd.Series,
+    bear_residual: pd.Series,
+    ewma_span: int = RESIDUAL_EWMA_SPAN,
+    rolling_windows: list[int] | None = None,
+    extra_columns: pd.DataFrame | None = None,
+) -> pd.DataFrame:
+    """Feature vector from precomputed oil/bear residual series."""
+    rolling_windows = rolling_windows or RESIDUAL_ROLLING_WINDOWS
+    oil_deg = degradation_signal(oil_residual)
+    bear_deg = degradation_signal(bear_residual)
+
+    features = pd.DataFrame(
+        {
+            "oil_deg": oil_deg,
+            "bear_deg": bear_deg,
+            "oil_ewma": ewma_feature(oil_residual, span=ewma_span),
+            "bear_ewma": ewma_feature(bear_residual, span=ewma_span),
+        },
+        index=oil_residual.index,
+    )
+    features = pd.concat(
+        [
+            features,
+            rolling_features(oil_residual, "oil", rolling_windows),
+            rolling_features(bear_residual, "bear", rolling_windows),
+        ],
+        axis=1,
+    )
+    if extra_columns is not None and not extra_columns.empty:
+        features = pd.concat([features, extra_columns], axis=1)
+    return features.dropna(how="any")
+
+
 def build_residual_feature_frame(
     df: pd.DataFrame,
     oil_model: GearboxThermalModel,
@@ -70,34 +104,19 @@ def build_residual_feature_frame(
     """
     rolling_windows = rolling_windows or RESIDUAL_ROLLING_WINDOWS
     residuals = compute_dual_residuals(df, oil_model, bear_model)
-
-    oil_deg = degradation_signal(residuals["oil_residual"])
-    bear_deg = degradation_signal(residuals["bear_residual"])
-
-    features = pd.DataFrame(
-        {
-            "oil_deg": oil_deg,
-            "bear_deg": bear_deg,
-            "oil_ewma": ewma_feature(residuals["oil_residual"], span=ewma_span),
-            "bear_ewma": ewma_feature(residuals["bear_residual"], span=ewma_span),
-        },
-        index=df.index,
+    return build_residual_feature_frame_from_series(
+        residuals["oil_residual"],
+        residuals["bear_residual"],
+        ewma_span=ewma_span,
+        rolling_windows=rolling_windows,
     )
-    features = pd.concat(
-        [
-            features,
-            rolling_features(residuals["oil_residual"], "oil", rolling_windows),
-            rolling_features(residuals["bear_residual"], "bear", rolling_windows),
-        ],
-        axis=1,
-    )
-    return features.dropna(how="any")
 
 
 __all__ = [
     "BEAR_TARGET",
     "OIL_TARGET",
     "build_residual_feature_frame",
+    "build_residual_feature_frame_from_series",
     "compute_dual_residuals",
     "degradation_signal",
     "ewma_feature",

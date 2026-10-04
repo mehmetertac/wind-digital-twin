@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import pandas as pd
+
+from wind_digital_twin.anomaly.hybrid_residual_detector import fit_hybrid_residual_detector
 from wind_digital_twin.anomaly.physics_hybrid import fit_physics_hybrid
 from wind_digital_twin.anomaly.scoring import threshold_from_training
 from wind_digital_twin.config import DEFAULT_THRESHOLD_PERCENTILE
@@ -42,3 +45,31 @@ def test_synthetic_edp_physics_hybrid_pipeline(tmp_path):
     )
     assert result.has_gearbox_failure
     assert result.scored_days >= 0
+
+
+def test_t06_hybrid_vs_physics_ramp_scores(tmp_path):
+    generate_synthetic_edp_dataset(tmp_path, random_state=11)
+    turbines, failures = load_edp_dataset(tmp_path)
+
+    turbine_id = "T06"
+    df = clean_turbine_df(turbines[turbine_id], min_power_kw=50.0)
+    failure = get_failure_for_turbine(turbine_id, failures)
+    healthy = df.loc[healthy_training_mask(df.index, failure, buffer_days=90)]
+    train = healthy.iloc[:2500]
+
+    physics = fit_physics_hybrid(train)
+    hybrid = fit_hybrid_residual_detector(train)
+
+    if failure is not None:
+        ramp = df.loc[
+            (df.index >= failure.timestamp - pd.Timedelta(days=60))
+            & (df.index < failure.timestamp)
+        ]
+    else:
+        ramp = df.iloc[-500:]
+
+    phys_scores = physics.score(ramp)
+    hybrid_scores = hybrid.score(ramp)
+    assert len(phys_scores) > 50
+    assert len(hybrid_scores) > 50
+    assert hybrid_scores.mean() >= phys_scores.mean() * 0.5

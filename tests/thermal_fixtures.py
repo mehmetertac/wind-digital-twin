@@ -38,12 +38,16 @@ def synthetic_thermal_df(n: int = 500, seed: int = 42) -> pd.DataFrame:
     for k in range(n):
         bear[k] = bear[k] + rng.normal(0, 0.2)
 
+    wind = 7.0 + 1.5 * np.sin(2 * np.pi * t_hours / 48.0) + rng.normal(0, 0.3, n)
+
     return pd.DataFrame(
         {
             THERMAL_TARGET_COLUMNS[0]: oil,
             THERMAL_TARGET_COLUMNS[1]: bear,
             POWER_COLUMN: power,
             "Rtr_RPM_Avg": rpm,
+            "Amb_WindSpeed_Avg": wind,
+            "Amb_WindDir_Relative_Avg": 180.0 + rng.normal(0, 5.0, n),
             "Nac_Temp_Avg": nac,
         },
         index=idx,

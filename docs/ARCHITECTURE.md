@@ -48,7 +48,7 @@ flowchart LR
 |-------|--------|----------------------------|---------------------------|---------------------|
 | **SCADA ingest** | Clean 10-min panel per turbine | Data QC flags (future) | Time-ordered splits only | “What the machine actually did” |
 | **Physics thermal** | Predicted oil/bear °C, residual = pred − actual | Healthy validation RMSE / residual spread | Train on healthy rows only; 90-day buffer before failure | “Expected heat for this load — extra heat is suspicious” |
-| **Learned residual** | Corrected expectation (port: Ridge/GBM baseline from anomaly repo) | Model disagreement vs physics (future) | Same healthy mask; no future failure labels in train | “Physics is close but systematically wrong here” |
+| **Learned residual** | `T_hybrid = T_physics − GBM(physics error \| exogenous fusion)` on healthy rows | Model disagreement vs physics (future) | Same healthy mask; corrector never sees gear temps / θ | “Physics is close but systematically wrong here” |
 | **Anomaly detector** | Score + sustained alarm | Threshold from healthy score distribution; **Week 11: conformal** | 99th-percentile threshold, persistence, cooldown on train scores | “Schedule inspection — failure likely within horizon” |
 | **Week 11** | RUL distribution + intervals | Conformal / calibrated prediction sets | Rolling-origin backtest | “How many days until intervention — with stated confidence” |
 
@@ -106,7 +106,7 @@ Ported code lives under `src/wind_digital_twin/{physics,residual,anomaly}` — u
 | **10 (PINN guardrail)** | Read ≤2 papers (**done:** Raissi 2019 + Pujana 2023 notes in [reading_notes.md](reading_notes.md)); heat-equation PINN **toy** in `notebooks/` |
 | **10 (sensor fusion design)** | [SENSOR_FUSION.md](SENSOR_FUSION.md) — EDP channel inventory + residual-model feature spec (implementation pending) |
 | **10 (ODE backbone)** | Lumped-parameter thermal ODE in `physics/lumped_ode.py`; optional capped NN on \(T_{\mathrm{eq}}\) (`--nn-correction`) |
-| **10 (residual)** | Learned residual model replacing/adjacent to linear physics error |
+| **10 (residual)** | Learned residual model + hybrid-residual IF; ODE surrogate notebook |
 | **11** | RUL head, conformal prediction intervals, deployment README + minimal serve path |
 | **Friday** | [`WEEK_10_REFLECTION.md`](../WEEK_10_REFLECTION.md) — honest uncertainty + leakage checklist + maintenance reading |
 

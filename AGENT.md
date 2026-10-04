@@ -19,8 +19,11 @@ Guidance for agents working in **wind-digital-twin**. Read this file first, then
 | [notebooks/README.md](notebooks/README.md) | Notebooks are thin drivers only (PINN toy, EDA) |
 | [src/wind_digital_twin/data/](src/wind_digital_twin/data/) | Load, clean, synthetic EDP |
 | [src/wind_digital_twin/physics/](src/wind_digital_twin/physics/) | Lumped ODE gearbox thermal model (`lumped_ode.py`, `gearbox_thermal.py`) |
-| [src/wind_digital_twin/residual/](src/wind_digital_twin/residual/) | Residual feature engineering |
-| [src/wind_digital_twin/anomaly/](src/wind_digital_twin/anomaly/) | Physics-hybrid anomaly detector |
+| [src/wind_digital_twin/residual/](src/wind_digital_twin/residual/) | Fusion features, learned residual corrector |
+| [src/wind_digital_twin/anomaly/](src/wind_digital_twin/anomaly/) | Physics-hybrid (Week 6) + hybrid-residual detector |
+| [src/wind_digital_twin/surrogate/](src/wind_digital_twin/surrogate/) | ODE surrogate demo (notebook driver) |
+| [scripts/run_learned_residual.py](scripts/run_learned_residual.py) | Hybrid vs physics RMSE JSON |
+| [scripts/run_hybrid_anomaly.py](scripts/run_hybrid_anomaly.py) | T06 detector spot-check vs physics-only |
 | [src/wind_digital_twin/eval/](src/wind_digital_twin/eval/) | Lead-time protocol, plots |
 | [scripts/run_gearbox_thermal.py](scripts/run_gearbox_thermal.py) | Fit physics layer CLI |
 | [tests/](tests/) | Unit + integration tests (fixtures + synthetic; no EDP download in CI) |

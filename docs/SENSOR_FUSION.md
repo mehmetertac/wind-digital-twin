@@ -1,6 +1,8 @@
 # Sensor fusion design — EDP SCADA → residual model features
 
-Capstone scope: **gearbox oil and bearing temperature** path on EDP Wind Farm 1 (10-minute SCADA). This document inventories channels by **signature type**, states what EDP **does not** provide, and specifies the **fused feature set** for the upcoming learned residual model (spec only—[`residual_features.py`](../src/wind_digital_twin/residual/residual_features.py) still implements physics-residual EWMA/rolling only).
+Capstone scope: **gearbox oil and bearing temperature** path on EDP Wind Farm 1 (10-minute SCADA). This document inventories channels by **signature type**, states what EDP **does not** provide, and documents the **fused feature set** implemented in [`fusion_features.py`](../src/wind_digital_twin/residual/fusion_features.py).
+
+**Shipped split (important):** the **learned corrector** uses exogenous regime features only (`power`, `RPM`, `nacelle`, `wind`, `torque_proxy`, `P²`) — not `theta_*`, `delta_bear_oil`, or raw gear temperatures. Those ratios feed the **anomaly detector** alongside hybrid-residual EWMA/rolling features ([`hybrid_residual_detector.py`](../src/wind_digital_twin/anomaly/hybrid_residual_detector.py)).
 
 Related: [ARCHITECTURE.md](ARCHITECTURE.md), [reading_notes.md](reading_notes.md) (Pujana hybrid twin), ported thermal rationale in [wind-turbine-anomaly PHYSICS_THERMAL](https://github.com/mehmetertac/wind-turbine-anomaly/blob/main/docs/PHYSICS_THERMAL.md).
 
@@ -204,8 +206,10 @@ Ground truth: [`GEARBOX_FAILURES`](../src/wind_digital_twin/config.py). Evaluati
 
 ---
 
-## Next implementation step
+## Implementation status
 
-1. Extend [`load_edp.py`](../src/wind_digital_twin/data/load_edp.py) / [`config.py`](../src/wind_digital_twin/config.py) with optional **fusion column groups** (confirm names on first real CSV load).
-2. Add `build_fusion_feature_frame()` next to [`build_residual_feature_frame`](../src/wind_digital_twin/residual/residual_features.py).
-3. Wire fused columns into the **learned residual model** when that module lands (handover: not started).
+1. Optional fusion columns: [`FUSION_OPTIONAL_COLUMNS`](../src/wind_digital_twin/config.py) + [`resolve_feature_columns`](../src/wind_digital_twin/data/clean.py) on ingest.
+2. `build_fusion_feature_frame()` — [`fusion_features.py`](../src/wind_digital_twin/residual/fusion_features.py).
+3. Learned corrector + hybrid detector — [`learned_residual.py`](../src/wind_digital_twin/residual/learned_residual.py), [`hybrid_residual_detector.py`](../src/wind_digital_twin/anomaly/hybrid_residual_detector.py).
+
+**Next:** confirm optional column names on first real EDP CSV header; extend imbalance/pitch features when columns verify.
