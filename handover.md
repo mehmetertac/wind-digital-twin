@@ -90,4 +90,4 @@ pytest tests/ -q
 
 ## Key commit
 
-`ad2fb4e` — Learned residual corrector, hybrid-residual detector, ODE surrogate notebook, fusion features, CLIs, tests, docs.
+`2ce0074` — Learned residual corrector, hybrid-residual detector, ODE surrogate notebook, fusion features, CLIs, tests, docs.
