@@ -33,6 +33,8 @@ from wind_digital_twin.data.clean import (  # noqa: E402
 from wind_digital_twin.data.load_edp import load_edp_dataset  # noqa: E402
 from wind_digital_twin.data.synthetic_edp import is_synthetic_dataset  # noqa: E402
 from wind_digital_twin.eval.protocol import evaluate_turbine  # noqa: E402
+from wind_digital_twin.eval.twin_pass import threshold_from_healthy_holdout  # noqa: E402
+from wind_digital_twin.physics.gearbox_thermal import healthy_train_validate_split  # noqa: E402
 from wind_digital_twin.residual.residual_features import build_residual_feature_frame  # noqa: E402
 
 
@@ -65,24 +67,21 @@ def run_t06_spotcheck(
     failure = get_failure_for_turbine(turbine_id, failures)
     healthy_mask = healthy_training_mask(df.index, failure, buffer_days)
     healthy_df = df.loc[healthy_mask]
-    n_train = min(len(healthy_df), max(2000, int(len(healthy_df) * 0.6)))
-    train = healthy_df.iloc[:n_train]
-    score_df = df.iloc[n_train:]
+    train = healthy_df
 
     physics_pipe = fit_physics_hybrid(train)
     hybrid_pipe = fit_hybrid_residual_detector(train)
 
-    train_phys = physics_pipe.score(train.iloc[n_train // 2 :])
-    train_hybrid = hybrid_pipe.score(train.iloc[n_train // 2 :])
+    _train_split, val_df = healthy_train_validate_split(train)
+    train_phys = physics_pipe.score(val_df if not val_df.empty else train)
+    train_hybrid = hybrid_pipe.score(val_df if not val_df.empty else train)
     thresh_phys = threshold_from_training(
         train_phys, percentile=DEFAULT_THRESHOLD_PERCENTILE
     )
-    thresh_hybrid = threshold_from_training(
-        train_hybrid, percentile=DEFAULT_THRESHOLD_PERCENTILE
-    )
+    thresh_hybrid, _ = threshold_from_healthy_holdout(hybrid_pipe, train)
 
-    phys_scores = physics_pipe.score(score_df)
-    hybrid_scores = hybrid_pipe.score(score_df)
+    phys_scores = physics_pipe.score(df)
+    hybrid_scores = hybrid_pipe.score(df)
 
     eval_phys = evaluate_turbine(
         turbine_id, phys_scores, thresh_phys, failure=failure
@@ -92,8 +91,8 @@ def run_t06_spotcheck(
     )
 
     if failure is not None:
-        pre_fail = score_df.index < pd.Timestamp(failure.timestamp)
-        ramp = score_df.loc[pre_fail]
+        pre_fail = df.index < pd.Timestamp(failure.timestamp)
+        ramp = df.loc[pre_fail]
         phys_ramp = physics_pipe.score(ramp)
         hybrid_ramp = hybrid_pipe.score(ramp)
     else:
@@ -106,13 +105,13 @@ def run_t06_spotcheck(
         "physics_only": {
             "lead_time_days": eval_phys.lead_time_days,
             "false_alarm_episodes": eval_phys.false_alarm_episodes,
-            "mean_bear_deg_scored": _mean_bear_deg(phys_scores.index, score_df, physics_pipe),
+            "mean_bear_deg_scored": _mean_bear_deg(phys_scores.index, df, physics_pipe),
             "mean_score_ramp": float(phys_ramp.mean()) if len(phys_ramp) else None,
         },
         "hybrid_residual": {
             "lead_time_days": eval_hybrid.lead_time_days,
             "false_alarm_episodes": eval_hybrid.false_alarm_episodes,
-            "mean_bear_deg_scored": _mean_bear_deg(hybrid_scores.index, score_df, hybrid_pipe),
+            "mean_bear_deg_scored": _mean_bear_deg(hybrid_scores.index, df, hybrid_pipe),
             "mean_score_ramp": float(hybrid_ramp.mean()) if len(hybrid_ramp) else None,
         },
         "pass_hybrid_as_good_or_better": (

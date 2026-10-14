@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install package
+        run: pip install -e ".[dev,serve,export]"
+
+      - name: Synthetic EDP + serving artifacts
+        run: |
+          python scripts/generate_synthetic_edp.py --force
+          python service/scripts/export_models.py
+
+      - name: Ruff lint
+        run: ruff check src service/src service/tests service/scripts service/dashboard
+
+      - name: File size guard
+        run: python scripts/check_file_size.py
+
+      - name: Unit tests
+        run: pytest tests/ service/tests/ -q
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: service/Dockerfile
+          push: false
+          load: true
+          tags: wind-digital-twin-service:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

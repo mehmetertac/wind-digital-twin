@@ -1,0 +1,13 @@
+sensor,learner,mean_shap,mean_abs_shap,rank,n_rows,features
+Bearing-oil temperature difference,p10,0.46753805763123635,0.46753805763123635,1,2920,delta_bear_oil_mean
+Gearbox oil temperature,p10,-0.41530325825331005,0.140466470688379,2,2920,oil_deg_mean;oil_deg_std;oil_deg_slope_7d
+Hybrid anomaly score,p10,-0.06715119080780668,0.03357559540390334,3,2920,anomaly_score_mean;anomaly_score_max
+Gearbox bearing temperature,p10,0.00833534052339728,0.014353928352515491,4,2920,bear_deg_mean;bear_deg_std;bear_deg_slope_7d
+Bearing temperature per unit power,p10,0.0068421963208992595,0.0068421963208992595,5,2920,theta_bear_mean
+Oil temperature per unit power,p10,-0.00026114541440316603,0.00026114541440316603,6,2920,theta_oil_mean
+Gearbox oil temperature,p50,0.0,0.0,1,2920,oil_deg_mean;oil_deg_std;oil_deg_slope_7d
+Gearbox bearing temperature,p50,0.0,0.0,2,2920,bear_deg_mean;bear_deg_std;bear_deg_slope_7d
+Oil temperature per unit power,p50,0.0,0.0,3,2920,theta_oil_mean
+Bearing temperature per unit power,p50,0.0,0.0,4,2920,theta_bear_mean
+Bearing-oil temperature difference,p50,0.0,0.0,5,2920,delta_bear_oil_mean
+Hybrid anomaly score,p50,0.0,0.0,6,2920,anomaly_score_mean;anomaly_score_max

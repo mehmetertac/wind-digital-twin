@@ -24,6 +24,8 @@ Guidance for agents working in **wind-digital-twin**. Read this file first, then
 | [src/wind_digital_twin/surrogate/](src/wind_digital_twin/surrogate/) | ODE surrogate demo (notebook driver) |
 | [scripts/run_learned_residual.py](scripts/run_learned_residual.py) | Hybrid vs physics RMSE JSON |
 | [scripts/run_hybrid_anomaly.py](scripts/run_hybrid_anomaly.py) | T06 detector spot-check vs physics-only |
+| [scripts/run_twin_pass.py](scripts/run_twin_pass.py) | End-to-end twin pass + timeline figure |
+| [src/wind_digital_twin/eval/twin_pass.py](src/wind_digital_twin/eval/twin_pass.py) | Layer frame alignment + threshold on healthy holdout |
 | [src/wind_digital_twin/eval/](src/wind_digital_twin/eval/) | Lead-time protocol, plots |
 | [scripts/run_gearbox_thermal.py](scripts/run_gearbox_thermal.py) | Fit physics layer CLI |
 | [tests/](tests/) | Unit + integration tests (fixtures + synthetic; no EDP download in CI) |

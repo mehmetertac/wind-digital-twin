@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "pandas>=2.0",
-    "numpy>=1.24",
+    "numpy>=1.26,<2",
     "scikit-learn>=1.3",
     "scipy>=1.10",
     "matplotlib>=3.7",
@@ -23,15 +23,40 @@ dependencies = [
 dev = [
     "pytest>=7.4",
     "pre-commit>=3.5",
+    "ruff>=0.4",
+    "httpx>=0.27",
+]
+serve = [
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "httpx>=0.27",
+    "pydantic>=2.0",
+    "joblib>=1.3",
+    "lightgbm>=4.0",
+]
+export = [
+    "lightgbm>=4.0",
+    "shap>=0.44",
+    "joblib>=1.3",
 ]
 pinn = [
     "torch>=2.0",
 ]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "service/src"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["src"]
+testpaths = ["tests", "service/tests"]
+pythonpath = ["src", "service/src"]
 addopts = "--assert=plain"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+src = ["src", "service/src", "service/tests", "tests", "scripts", "service/scripts"]
+exclude = ["notebooks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B008"]

@@ -1,8 +1,8 @@
 # handover.md
 
-**Last updated:** 2026-10-02
+**Last updated:** 2026-10-13
 
-Track B capstone: hybrid drivetrain digital twin (lumped ODE thermal + learned residual + anomaly). Week 10 capstone build: fusion features, GBM residual corrector, hybrid-residual detector, ODE surrogate notebook.
+Track B capstone: hybrid drivetrain digital twin (lumped ODE thermal + learned residual + anomaly) with Week 11 **FastAPI + Streamlit** serving. Gearbox RUL, CQR, and SHAP live in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults).
 
 ---
 
@@ -11,20 +11,15 @@ Track B capstone: hybrid drivetrain digital twin (lumped ODE thermal + learned r
 | Item | Status |
 |------|--------|
 | Git remote `origin` → [wind-digital-twin](https://github.com/mehmetertac/wind-digital-twin) | Done |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — taxonomy, fidelity, pipeline diagram, scope | Done |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — taxonomy, fidelity, pipeline diagram | Done |
 | Package `wind_digital_twin` — data, physics, residual, anomaly, eval, surrogate | Done |
-| **Lumped thermal ODE backbone** — [`lumped_ode.py`](src/wind_digital_twin/physics/lumped_ode.py), optional [`lumped_ode_correction.py`](src/wind_digital_twin/physics/lumped_ode_correction.py) | Done |
-| **Fusion features** — [`fusion_features.py`](src/wind_digital_twin/residual/fusion_features.py), optional EDP columns in [`clean.py`](src/wind_digital_twin/data/clean.py) | Done |
-| **Learned residual corrector** — [`learned_residual.py`](src/wind_digital_twin/residual/learned_residual.py) (HGBM default; optional LightGBM via `WIND_DT_USE_LIGHTGBM=1`) | Done |
-| **Hybrid-residual detector** — [`hybrid_residual_detector.py`](src/wind_digital_twin/anomaly/hybrid_residual_detector.py); Week 6 baseline unchanged in [`physics_hybrid.py`](src/wind_digital_twin/anomaly/physics_hybrid.py) | Done |
-| **ODE surrogate demo** — [`surrogate/thermal_surrogate.py`](src/wind_digital_twin/surrogate/thermal_surrogate.py), [`notebooks/thermal_surrogate.ipynb`](notebooks/thermal_surrogate.ipynb) | Done |
-| Scripts: synthetic EDP, download check, gearbox thermal, learned residual RMSE, T06 detector spot-check | Done |
-| Tests + pre-commit (file size + pytest) | Done |
-| [AGENT.md](AGENT.md) agent rules | Done |
-| [docs/SENSOR_FUSION.md](docs/SENSOR_FUSION.md) — inventory + shipped fusion/corrector split | Done |
-| PINN heat-equation toy + ablation figure | Done |
-| [WEEK_10_REFLECTION.md](WEEK_10_REFLECTION.md) | Done |
-| Week 11 RUL + conformal + deployment | Not started |
+| End-to-end twin pass — [`eval/twin_pass.py`](src/wind_digital_twin/eval/twin_pass.py), [`scripts/run_twin_pass.py`](scripts/run_twin_pass.py) | Done |
+| Headline figures — twin timeline, hybrid RMSE, PINN ablation | Done (synthetic EDP) |
+| **`service/`** — `twin_service` FastAPI, Streamlit dashboard, Docker, CI | Done |
+| **`service/models/`** — synthetic smoke pipeline, RUL bundle, CQR offsets, SHAP CSV, timeline parquet | Done |
+| Dashboard README assets — [`docs/figures/twin_dashboard.png`](docs/figures/twin_dashboard.png), [`.gif`](docs/figures/twin_dashboard.gif) | Done |
+| Tests — root + `service/tests/` (API smokes, dashboard client); 64 passed locally 2026-10-13 | Done |
+| Real EDP re-export of serving models | Pending when data downloaded |
 
 ---
 
@@ -34,24 +29,19 @@ Track B capstone: hybrid drivetrain digital twin (lumped ODE thermal + learned r
 wind-digital-twin/
 ├── AGENT.md
 ├── handover.md
-├── WEEK_10_REFLECTION.md
 ├── README.md
-├── docs/ARCHITECTURE.md
-├── docs/SENSOR_FUSION.md
-├── data/raw/edp/
+├── .github/workflows/ci.yml
+├── docs/figures/
+├── service/
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── models/              # committed smoke artifacts
+│   ├── scripts/export_models.py
+│   ├── dashboard/
+│   └── src/twin_service/
 ├── src/wind_digital_twin/
-│   ├── data/
-│   ├── physics/
-│   ├── pinn/
-│   ├── residual/          # residual_features, fusion_features, learned_residual
-│   ├── anomaly/           # physics_hybrid, hybrid_residual_detector, IF
-│   ├── surrogate/thermal_surrogate.py
-│   └── eval/
 ├── scripts/
-│   run_learned_residual.py, run_hybrid_anomaly.py, ...
-├── tests/
-├── notebooks/pinn_heat_toy.ipynb, thermal_surrogate.ipynb
-└── results/               # physics_thermal/, residual/
+└── tests/
 ```
 
 ---
@@ -60,34 +50,30 @@ wind-digital-twin/
 
 | Symbol | Module | Purpose |
 |--------|--------|---------|
-| `resolve_feature_columns`, `clean_turbine_df` | `data.clean` | Core + optional fusion columns |
-| `build_fusion_feature_frame`, `build_corrector_matrix` | `residual.fusion_features` | θ ratios, detector context, corrector inputs |
-| `fit_hybrid_thermal_corrector`, `HybridThermalCorrector` | `residual.learned_residual` | ODE + GBM on healthy physics error |
-| `fit_physics_hybrid` | `anomaly.physics_hybrid` | Week 6 IF on physics residuals |
-| `fit_hybrid_residual_detector` | `anomaly.hybrid_residual_detector` | IF on hybrid residuals + fusion context |
-| `build_surrogate_dataset`, `train_surrogate`, `benchmark_surrogate_speed` | `surrogate.thermal_surrogate` | ODE surrogate demo |
+| `run_twin_pass`, `build_twin_layer_frame` | `eval.twin_pass` | SCADA → layers + figures |
+| `fit_hybrid_residual_detector` | `anomaly.hybrid_residual_detector` | IF on hybrid residuals |
+| `create_app`, `load_artifacts` | `twin_service.api.app`, `twin_service.artifacts` | FastAPI + model load |
+| `score_window`, `predict_rul` | `twin_service.inference` | `/twin/score`, `/twin/rul` |
 
 **CLI**
 
 ```powershell
+pip install -e ".[dev,serve,export]"
 python scripts/generate_synthetic_edp.py --force
-python scripts/run_gearbox_thermal.py
-python scripts/run_learned_residual.py
-python scripts/run_hybrid_anomaly.py --turbine T06
-pip install -e ".[pinn]"
-python notebooks/thermal_surrogate.ipynb   # or run cells locally
-pytest tests/ -q
+python service/scripts/export_models.py
+pytest tests/ service/tests/ -q
+uvicorn twin_service.api.app:app --port 8000
 ```
 
 ---
 
 ## Suggested next step
 
-1. Re-fit on **real** EDP when downloaded; compare hybrid vs physics RMSE in `results/residual/rmse_comparison.json`.
-2. Week 11: RUL head, conformal intervals on scores, deployment sketch.
+1. Re-run `export_models.py` after real EDP download (do not refit ODE in grid-gnn-faults).
+2. IEEE 39-bus GNN demo remains in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults) only.
 
 ---
 
 ## Key commit
 
-`2ce0074` — Learned residual corrector, hybrid-residual detector, ODE surrogate notebook, fusion features, CLIs, tests, docs.
+*(Update after push with Week 11 deployment commit hash.)*

@@ -88,7 +88,7 @@ def simulate_temperature(
 
     t_eq = equilibrium_temperature(nac, power, rpm, params, correction=correction)
     reset = _gap_reset_mask(df.index, gap_reset_hours)
-    dt_sec = df.index.to_series().diff().dt.total_seconds().to_numpy()
+    dt_sec = df.index.to_series().diff().dt.total_seconds().to_numpy(copy=True)
     dt_sec[0] = 0.0
 
     pred = np.empty(n, dtype=float)

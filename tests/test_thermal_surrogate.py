@@ -26,7 +26,7 @@ def test_build_surrogate_dataset_shapes():
 
 def test_train_surrogate_holdout_rmse_reasonable():
     ds = build_surrogate_dataset(horizon=32, n_profiles=4, n_params=6, seed=3)
-    _model, _mean, _std, rmse = train_surrogate(ds, epochs=25, val_fraction=0.2)
+    _model, _mean, _std, rmse = train_surrogate(ds, epochs=80, val_fraction=0.2)
     assert rmse < 15.0
 
 

@@ -1,6 +1,6 @@
 # Capstone architecture — hybrid drivetrain digital twin
 
-Track B capstone: a **hybrid digital twin** for wind-turbine **gearbox/drivetrain thermal** behavior. SCADA from the EDP open dataset (same backbone as [wind-turbine-anomaly](https://github.com/mehmetertac/wind-turbine-anomaly)) feeds a physics-informed expected-temperature model, a learned residual correction (Week 10+), and an anomaly detector. Week 11 adds RUL, conformal uncertainty intervals, and a deployment sketch.
+Track B capstone: a **hybrid digital twin** for wind-turbine **gearbox/drivetrain thermal** behavior. SCADA from the EDP open dataset (same backbone as [wind-turbine-anomaly](https://github.com/mehmetertac/wind-turbine-anomaly)) feeds a physics-informed expected-temperature model, a learned residual correction, and an anomaly detector. **Week 11 (shipped):** end-to-end twin pass CLI, headline timeline figure, docs. **Next:** RUL, conformal uncertainty intervals, deployment sketch.
 
 ---
 
@@ -27,20 +27,24 @@ This capstone is **hybrid**: a steady-state thermal normal-behavior model (power
 | **Prescriptive** | Recommended actions (curtail, inspect) | Emerging; rarely fully automated onshore |
 | **Closed-loop** | Twin drives control setpoints | Rare on commercial WT; research / specific subsystems |
 
-**This repo (Week 10 scaffold):** hybrid, **component-level** (gearbox thermal path), **predictive** advisory (lead time in days), **open-loop** — alarms for maintenance planning, not turbine control.
+**This repo:** hybrid, **component-level** (gearbox thermal path), **predictive** advisory (lead time in days), **open-loop** — alarms for maintenance planning, not turbine control.
 
 ---
 
-## Pipeline (README diagram)
+## Pipeline (shipped)
 
 ```mermaid
 flowchart LR
-    scada["EDP SCADA 10-min: power, RPM, nacelle temp, oil/bearing temp"] --> physics["Physics-informed thermal model: expected temperature"]
-    physics --> resid["Learned residual model: corrects structured physics error"]
-    resid --> anomaly["Anomaly detector: EWMA plus IsolationForest, persistence rule"]
-    anomaly --> alarm["Maintenance alarm with lead time in days"]
-    anomaly -.-> week11["Week 11: RUL, conformal intervals, deployment"]
+    scada["EDP SCADA 10-min"] --> clean["clean_turbine_df"]
+    clean --> ode["Lumped thermal ODE"]
+    ode --> gbm["GBM residual corrector"]
+    gbm --> det["Hybrid-residual Isolation Forest"]
+    det --> alarm["Sustained alarm and lead time"]
 ```
+
+Driver: [`scripts/run_twin_pass.py`](../scripts/run_twin_pass.py) → [`eval/twin_pass.py`](../src/wind_digital_twin/eval/twin_pass.py). Headline figure: [`docs/figures/twin_timeline_T06.png`](figures/twin_timeline_T06.png).
+
+**Planned (not shipped):** RUL head, conformal prediction intervals on scores, minimal serve path.
 
 ### Layer contracts
 
@@ -93,8 +97,9 @@ Ported code lives under `src/wind_digital_twin/{physics,residual,anomaly}` — u
 | [`src/wind_digital_twin/physics/`](../src/wind_digital_twin/physics/) | Lumped ODE gearbox thermal model + linear baseline |
 | [`src/wind_digital_twin/residual/`](../src/wind_digital_twin/residual/) | Residual feature engineering |
 | [`src/wind_digital_twin/anomaly/`](../src/wind_digital_twin/anomaly/) | Physics-hybrid detector (IF) |
-| [`src/wind_digital_twin/eval/`](../src/wind_digital_twin/eval/) | Lead time, false alarms, plots |
+| [`src/wind_digital_twin/eval/`](../src/wind_digital_twin/eval/) | Lead time, false alarms, twin pass, plots |
 | [`scripts/run_gearbox_thermal.py`](../scripts/run_gearbox_thermal.py) | Fit physics layer + write residuals |
+| [`scripts/run_twin_pass.py`](../scripts/run_twin_pass.py) | End-to-end SCADA → score + timeline figure |
 
 ---
 
@@ -107,7 +112,8 @@ Ported code lives under `src/wind_digital_twin/{physics,residual,anomaly}` — u
 | **10 (sensor fusion design)** | [SENSOR_FUSION.md](SENSOR_FUSION.md) — EDP channel inventory + residual-model feature spec (implementation pending) |
 | **10 (ODE backbone)** | Lumped-parameter thermal ODE in `physics/lumped_ode.py`; optional capped NN on \(T_{\mathrm{eq}}\) (`--nn-correction`) |
 | **10 (residual)** | Learned residual model + hybrid-residual IF; ODE surrogate notebook |
-| **11** | RUL head, conformal prediction intervals, deployment README + minimal serve path |
+| **11 (integration)** | End-to-end twin pass, timeline + RMSE figures, README maintenance narrative |
+| **11 (next)** | RUL head, conformal prediction intervals, deployment README + minimal serve path |
 | **Friday** | [`WEEK_10_REFLECTION.md`](../WEEK_10_REFLECTION.md) — honest uncertainty + leakage checklist + maintenance reading |
 
 ---

@@ -1,0 +1,20 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: service/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      TWIN_MODELS_DIR: /app/service/models
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: service/dashboard/Dockerfile
+    environment:
+      API_URL: http://api:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api

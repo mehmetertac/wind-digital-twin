@@ -7,8 +7,18 @@ from pathlib import Path
 
 MAX_LINES = 1000
 ROOT = Path(__file__).resolve().parents[1]
-SCAN_DIRS = ("src", "tests", "scripts", "docs", "notebooks")
-SKIP_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".parquet", ".csv", ".zip", ".ckpt"}
+SCAN_DIRS = ("src", "tests", "scripts", "docs", "notebooks", "service")
+SKIP_SUFFIXES = {
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".parquet",
+    ".csv",
+    ".zip",
+    ".ckpt",
+    ".joblib",
+}
 
 
 def iter_files() -> list[Path]:
