@@ -1,6 +1,6 @@
 # handover.md
 
-**Last updated:** 2026-10-13
+**Last updated:** 2026-10-14
 
 Track B capstone: hybrid drivetrain digital twin (lumped ODE thermal + learned residual + anomaly) with Week 11 **FastAPI + Streamlit** serving. Gearbox RUL, CQR, and SHAP live in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults).
 
@@ -76,4 +76,4 @@ uvicorn twin_service.api.app:app --port 8000
 
 ## Key commit
 
-*(Update after push with Week 11 deployment commit hash.)*
+`3930389` — FastAPI/Streamlit serving, smoke models, twin pass (prior: `51b94f6` handover hash update).
