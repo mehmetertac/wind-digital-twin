@@ -17,7 +17,7 @@ Track B capstone **v1.0.0**: hybrid drivetrain digital twin with Week 11 **FastA
 | README v1.0.0 — hybrid RMSE table, RUL placeholder table, SHAP figure, limitations | Done |
 | [docs/figures/shap_sensor_ranking.png](docs/figures/shap_sensor_ranking.png) | Done (synthetic export) |
 | Real EDP re-export of serving models + filled RUL metrics table | Pending when data downloaded |
-| Release tag **`v1.0.0`** | Pending push |
+| Release tag **`v1.0.0`** | Tagged locally; push pending |
 
 ---
 
@@ -30,4 +30,4 @@ Track B capstone **v1.0.0**: hybrid drivetrain digital twin with Week 11 **FastA
 
 ## Key commit
 
-(Pending capstone README v1.0.0 polish — prior: `3930389` FastAPI/Streamlit serving.)
+`1b38e11` — Capstone README v1.0.0, SHAP figure, venv pre-commit pytest (prior: `3930389` serving).
