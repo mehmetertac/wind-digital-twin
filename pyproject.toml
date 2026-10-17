@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wind-digital-twin"
-version = "0.1.0"
+version = "1.0.0"
 description = "Hybrid digital twin for wind turbine drivetrain — physics thermal model, learned residual, anomaly detection"
 readme = "README.md"
 requires-python = ">=3.10"

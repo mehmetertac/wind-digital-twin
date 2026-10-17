@@ -1,6 +1,6 @@
 # wind-digital-twin
 
-Hybrid **digital twin** capstone for a wind-turbine **gearbox/drivetrain thermal** path: EDP SCADA → lumped thermal ODE → **learned residual corrector** (healthy-only GBM on fused exogenous features) → **hybrid-residual anomaly detector** → maintenance alarms. **Week 11 (this milestone):** end-to-end twin pass, headline figures, and maintenance narrative. **Next:** RUL head, conformal intervals, deployment sketch.
+Hybrid **digital twin** capstone (**v1.0.0**) for a wind-turbine **gearbox/drivetrain thermal** path: EDP SCADA → lumped thermal ODE → **learned residual corrector** → **hybrid-residual anomaly detector** → **probabilistic gearbox RUL** (P10/P50/P90 + MAPIE conformal bands) → **TreeSHAP sensor explanations** → **FastAPI + Streamlit** serving. RUL training and LOFO evaluation live in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults); this repo ships the Week 10 physics path and the deployment layer.
 
 Full taxonomy, fidelity levels, and pipeline diagram: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
@@ -36,9 +36,15 @@ flowchart LR
     ode --> gbm["GBM residual corrector"]
     gbm --> det["Hybrid-residual Isolation Forest"]
     det --> alarm["Sustained alarm and lead time"]
+    det --> daily["Daily fused features"]
+    daily --> rul["LightGBM P10/P50/P90 RUL"]
+    rul --> cqr["MAPIE CQR intervals"]
+    rul --> shap["TreeSHAP sensor ranks"]
+    cqr --> svc["FastAPI + Streamlit"]
+    shap --> svc
 ```
 
-One command runs the full path and writes the headline timeline: [`scripts/run_twin_pass.py`](scripts/run_twin_pass.py) → [`eval/twin_pass.py`](src/wind_digital_twin/eval/twin_pass.py).
+Week 10 scoring path: [`scripts/run_twin_pass.py`](scripts/run_twin_pass.py) → [`eval/twin_pass.py`](src/wind_digital_twin/eval/twin_pass.py). End-to-end RUL timeline (requires `pip install -e path/to/grid-gnn-faults`): [`scripts/run_twin.py`](https://github.com/mehmetertac/grid-gnn-faults/blob/main/scripts/run_twin.py) in grid-gnn-faults.
 
 ## End-to-end twin timeline (T06)
 
@@ -56,11 +62,37 @@ That pattern is what we want on SCADA: sparse temperature observations plus a **
 
 ## Hybrid vs physics-only (healthy validation)
 
-On **healthy** rows only (time-ordered 80/20 split), the GBM corrector fits systematic ODE error from exogenous regime features — not gear temperatures. Typical synthetic T06 holdout: oil RMSE **~2.26 °C → ~0.40 °C** (~82% reduction); bear **~2.37 °C → ~0.44 °C** (~81% reduction). Reproduce: `python scripts/run_twin_pass.py`.
+On **healthy** rows only (time-ordered 80/20 split), the GBM corrector fits systematic ODE error from exogenous regime features — not gear temperatures. **Synthetic EDP** holdout RMSE (°C):
+
+| Turbine | Oil physics | Oil hybrid | Oil Δ% | Bear physics | Bear hybrid | Bear Δ% |
+|---------|-------------|------------|--------|--------------|-------------|---------|
+| T01 | 2.08 | 0.50 | 76 | 2.15 | 0.55 | 75 |
+| T06 | 2.26 | 0.40 | 82 | 2.37 | 0.44 | 81 |
+| T07 | 2.58 | 0.40 | 84 | 2.68 | 0.44 | 83 |
+| T11 | 2.74 | 0.42 | 85 | 2.80 | 0.46 | 84 |
+
+Source: `results/residual/rmse_comparison.json` after `python scripts/run_twin_pass.py`.
 
 ![Physics ODE vs hybrid validation RMSE](docs/figures/hybrid_vs_physics_rmse.png)
 
 Pre-failure **degradation** shows in the timeline residuals and anomaly score, not in this healthy RMSE chart.
+
+## Gearbox RUL (probabilistic + conformal)
+
+Daily aggregates of hybrid residuals, anomaly score, and θ features feed LightGBM quantiles at **P10/P50/P90**, widened with **MAPIE CQR** at 80%/90%. Evaluation is **leave-one-failure-out** on four catalogued EDP gearbox events (three turbines). Design: [grid-gnn-faults/docs/RUL_DESIGN.md](https://github.com/mehmetertac/grid-gnn-faults/blob/main/docs/RUL_DESIGN.md).
+
+| Event | Turbine | LOFO MAE (P50) | Pinball q0.5 | Raw [P10,P90] coverage | CQR 80% coverage | P10 first below 14 d (days before failure) |
+| --- | --- | --- | --- | --- | --- | --- |
+| T01 pump damage | T01 | — | — | — | — | — |
+| T06 bearing damage | T06 | — | — | — | — | — |
+| T09 repair | T09 | — | — | — | — | — |
+| T09 noise | T09 | — | — | — | — | — |
+
+Em dashes until a fleet **scored CSV** is exported from this twin without refitting the ODE (`python scripts/run_twin.py` in grid-gnn-faults). **Coverage caveat:** split conformal guarantees are **marginal**; with four events, small calibration tails, and non-exchangeable run-to-failure windows, gaps versus 80%/90% are expected — not a tuning knob ([RUL_DESIGN.md](https://github.com/mehmetertac/grid-gnn-faults/blob/main/docs/RUL_DESIGN.md)).
+
+![TreeSHAP — mean |SHAP| by sensor on P10 RUL (synthetic service export)](docs/figures/shap_sensor_ranking.png)
+
+The bar chart uses committed smoke weights in [`service/models/`](service/models/); re-run `service/scripts/export_models.py` after real EDP download for field-facing ranks.
 
 ## ODE surrogate speedup (demo)
 
@@ -113,6 +145,8 @@ Gearbox RUL training, LOFO conformal evaluation, and TreeSHAP live in [grid-gnn-
 
 ## Limitations (honest)
 
+- **Few failure events** — four gearbox log lines on three turbines; RUL and conformal coverage are demonstration-grade, not fleet SLAs.
+- **Marginal conformal coverage** — CQR intervals are honest on held-out windows but not a guarantee on the next turbine; say this before being asked.
 - **No vibration / CMS** in EDP — thermal SCADA only; envelope and band energy often lead temperature by days to weeks on real gearboxes.
 - **Single thermal failure mode** — one score on oil and HSS bearing temperature; not a classifier for pump vs bearing vs noise (T01/T06/T09 are different root causes in the log).
 - **10-minute SCADA** — sub-hour transients are averaged; τ may pile at the floor when series are quasi-steady.

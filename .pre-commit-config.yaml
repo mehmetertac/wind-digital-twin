@@ -9,7 +9,8 @@ repos:
         always_run: true
       - id: pytest
         name: pytest
-        entry: python -m pytest -q
+        entry: .venv/Scripts/python.exe
+        args: [-m, pytest, -q, tests/, service/tests/]
         language: system
         pass_filenames: false
         always_run: true
