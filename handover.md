@@ -31,4 +31,4 @@ Track B capstone **v1.0.0**: hybrid drivetrain digital twin with Week 11 **FastA
 
 ## Key commit
 
-`c1d99a1` — P10 attributions, dashboard figure/GIF refresh (prior: `1b38e11` README v1.0.0).
+`4bd4676` — P10 attributions, dashboard figure/GIF refresh (prior: `1b38e11` README v1.0.0).
