@@ -80,6 +80,8 @@ def test_twin_rul_endpoint(models_dir: Path):
     payload = response.json()
     assert payload["rul_p10"] <= payload["rul_p50"] <= payload["rul_p90"]
     assert len(payload["attributions"]) == 5
+    assert all(item["learner"] == "p10" for item in payload["attributions"])
+    assert any(item["mean_abs_shap"] > 0 for item in payload["attributions"])
     assert payload["cqr80_lo"] <= payload["cqr80_hi"]
 
 

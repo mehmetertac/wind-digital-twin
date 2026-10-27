@@ -112,7 +112,7 @@ def _apply_conformal(
 def top_sensor_attributions(
     ranking: pd.DataFrame,
     *,
-    learner: str = "p50",
+    learner: str = "p10",
     limit: int = 5,
 ) -> list[SensorAttribution]:
     work = ranking.loc[ranking["learner"] == learner].sort_values("rank")

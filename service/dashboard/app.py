@@ -122,7 +122,7 @@ if {"rul_p50", "cqr80_lo", "cqr80_hi"}.issubset(chart_df.columns):
 else:
     st.info("RUL columns missing from timeline export.")
 
-st.subheader("Sensor attributions (global P50 SHAP ranks)")
+st.subheader("Sensor attributions (global P10 mean |SHAP|)")
 try:
     attrs = pd.DataFrame(fetch_attributions())
     bar = (

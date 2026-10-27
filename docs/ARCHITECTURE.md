@@ -1,6 +1,6 @@
 # Capstone architecture — hybrid drivetrain digital twin
 
-Track B capstone (**v1.0.0**): a **hybrid digital twin** for wind-turbine **gearbox/drivetrain thermal** behavior. SCADA from the EDP open dataset (same backbone as [wind-turbine-anomaly](https://github.com/mehmetertac/wind-turbine-anomaly)) feeds physics-informed expected temperature, learned residual correction, anomaly detection, probabilistic RUL with conformal intervals, SHAP explanations, and FastAPI/Streamlit serving. RUL modules: [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults).
+Track B capstone (**v1.0.0**): a **hybrid digital twin** for wind-turbine **gearbox/drivetrain thermal** behavior. SCADA from the EDP open dataset (same backbone as [wind-turbine-anomaly](https://github.com/mehmetertac/wind-turbine-anomaly)) feeds physics-informed expected temperature, learned residual correction, anomaly detection, probabilistic RUL with conformal intervals, SHAP explanations, and FastAPI/Streamlit serving. RUL modules: [grid-gnn-faults-2](https://github.com/mehmetertac/grid-gnn-faults-2).
 
 ---
 
@@ -48,7 +48,7 @@ flowchart LR
     shap --> svc
 ```
 
-Drivers: [`scripts/run_twin_pass.py`](../scripts/run_twin_pass.py) (Week 10 scoring + figures); [`service/`](../service/) (deployment); RUL LOFO in grid-gnn-faults. Headline figures: [`docs/figures/twin_timeline_T06.png`](figures/twin_timeline_T06.png), [`twin_dashboard.png`](figures/twin_dashboard.png).
+Drivers: [`scripts/run_twin_pass.py`](../scripts/run_twin_pass.py) (Week 10 scoring + figures); [`service/`](../service/) (deployment); RUL LOFO in grid-gnn-faults-2. Headline figures: [`docs/figures/twin_timeline_T06.png`](figures/twin_timeline_T06.png), [`twin_dashboard.png`](figures/twin_dashboard.png).
 
 ### Layer contracts
 
@@ -117,7 +117,7 @@ Ported code lives under `src/wind_digital_twin/{physics,residual,anomaly}` — u
 | **10 (ODE backbone)** | Lumped-parameter thermal ODE in `physics/lumped_ode.py`; optional capped NN on \(T_{\mathrm{eq}}\) (`--nn-correction`) |
 | **10 (residual)** | Learned residual model + hybrid-residual IF; ODE surrogate notebook |
 | **11 (integration)** | End-to-end twin pass, timeline + RMSE figures, README maintenance narrative |
-| **11 (RUL + serve)** | Quantile RUL, CQR, SHAP in grid-gnn-faults; FastAPI + Streamlit in `service/` |
+| **11 (RUL + serve)** | Quantile RUL, CQR, SHAP in grid-gnn-faults-2; FastAPI + Streamlit in `service/` |
 | **11 (capstone tag)** | README v1.0.0, architecture diagram through serving layer |
 | **Friday** | [`WEEK_10_REFLECTION.md`](../WEEK_10_REFLECTION.md) — honest uncertainty + leakage checklist + maintenance reading |
 
