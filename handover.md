@@ -32,4 +32,4 @@ Track B capstone **v1.0.0**: hybrid drivetrain digital twin with Week 11 **FastA
 
 ## Key commit
 
-`06f0b22` — README polish: Week 12 opener, badges, grid-gnn-faults links, PINN/surrogate sourcing.
+`5023eed` — README polish: Week 12 opener, badges, grid-gnn-faults links, PINN/surrogate sourcing.
