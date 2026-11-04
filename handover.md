@@ -1,8 +1,8 @@
 # handover.md
 
-**Last updated:** 2026-10-27
+**Last updated:** 2026-11-04
 
-Track B capstone **v1.0.0**: hybrid drivetrain digital twin with Week 11 **FastAPI + Streamlit** serving. Gearbox RUL, CQR, and SHAP live in [grid-gnn-faults-2](https://github.com/mehmetertac/grid-gnn-faults-2). IEEE 39-bus GNN demo lives in [grid-gnn-faults-2](https://github.com/mehmetertac/grid-gnn-faults-2) only.
+Track B capstone **v1.0.0**: hybrid drivetrain digital twin with Week 11 **FastAPI + Streamlit** serving. Gearbox RUL, CQR, and SHAP live in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults). IEEE 39-bus GNN demo lives in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults) only.
 
 ---
 
@@ -16,6 +16,7 @@ Track B capstone **v1.0.0**: hybrid drivetrain digital twin with Week 11 **FastA
 | **`service/`** — FastAPI, Streamlit, Docker, CI; P10 SHAP attributions in API/UI | Done |
 | [docs/figures/twin_dashboard.gif](docs/figures/twin_dashboard.gif) — scrub animation with residual + SHAP | Done |
 | README v1.0.0 — hybrid RMSE table, RUL placeholder table, SHAP figure, limitations | Done |
+| Week 12 README polish — recruiter opener, badges, grid-gnn-faults links, PINN/surrogate sourcing | Done |
 | [docs/figures/shap_sensor_ranking.png](docs/figures/shap_sensor_ranking.png) | Done (synthetic export) |
 | Real EDP re-export of serving models + filled RUL metrics table | Pending when data downloaded |
 | Release tag **`v1.0.0`** | Tagged locally; push pending |
@@ -24,11 +25,11 @@ Track B capstone **v1.0.0**: hybrid drivetrain digital twin with Week 11 **FastA
 
 ## Suggested next step
 
-1. Re-run `export_models.py` after real EDP download (do not refit ODE in grid-gnn-faults-2).
-2. Export scored CSV and fill LOFO RUL / lead-time table in README from grid-gnn-faults-2 CLI.
+1. Re-run `export_models.py` after real EDP download (do not refit ODE in grid-gnn-faults).
+2. Export scored CSV and fill LOFO RUL / lead-time table in README from grid-gnn-faults CLI.
 
 ---
 
 ## Key commit
 
-`4bd4676` — P10 attributions, dashboard figure/GIF refresh (prior: `1b38e11` README v1.0.0).
+`06f0b22` — README polish: Week 12 opener, badges, grid-gnn-faults links, PINN/surrogate sourcing.

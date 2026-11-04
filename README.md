@@ -1,6 +1,13 @@
 # wind-digital-twin
 
-Hybrid **digital twin** capstone (**v1.0.0**) for a wind-turbine **gearbox/drivetrain thermal** path: EDP SCADA → lumped thermal ODE → **learned residual corrector** → **hybrid-residual anomaly detector** → **probabilistic gearbox RUL** (P10/P50/P90 + MAPIE conformal bands) → **TreeSHAP sensor explanations** → **FastAPI + Streamlit** serving. RUL training and LOFO evaluation live in [grid-gnn-faults-2](https://github.com/mehmetertac/grid-gnn-faults-2); this repo ships the Week 10 physics path and the deployment layer.
+[![ci](https://github.com/mehmetertac/wind-digital-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/mehmetertac/wind-digital-twin/actions/workflows/ci.yml)
+![Python >=3.10](https://img.shields.io/badge/python-%3E%3D3.10-blue)
+![License](https://img.shields.io/badge/license-Apache--2.0-green)
+[![Release](https://img.shields.io/github/v/release/mehmetertac/wind-digital-twin)](https://github.com/mehmetertac/wind-digital-twin/releases)
+
+A **hybrid digital twin** for wind-turbine **gearbox thermal** health: when SCADA says “bearing temperature high,” that alarm does not tell you whether the turbine is simply running hot at high load or producing **extra heat the operating point cannot explain**. This repo estimates load-conditioned expected oil and bearing temperature (lumped thermal ODE + learned residual correction), flags sustained degradation in the **hybrid residual**, and serves probabilistic gearbox RUL bands with sensor attributions over **FastAPI + Streamlit**. Built for **O&M planners and asset-analytics interviews** — advisory inspection timing, not turbine control. RUL training and leave-one-failure-out evaluation live in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults); this repo ships the physics path, figures, and deployment layer (**v1.0.0**).
+
+**Long-form article (placeholder):** *From the turbine floor to the model: physics-informed anomaly detection with field intuition* — link pending Saturday.
 
 Full taxonomy, fidelity levels, and pipeline diagram: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
@@ -16,8 +23,8 @@ pre-commit install
 pip install -e ".[pinn]"
 python scripts/run_pinn_heat.py
 
-python scripts/generate_synthetic_edp.py --force
-python scripts/download_edp.py --check
+python scripts/generate_synthetic_edp.py --force   # writes the four EDP CSVs under data/raw/edp/
+python scripts/download_edp.py --check             # confirms those four files exist
 python scripts/run_gearbox_thermal.py
 python scripts/run_learned_residual.py
 python scripts/run_hybrid_anomaly.py --turbine T06
@@ -44,7 +51,7 @@ flowchart LR
     shap --> svc
 ```
 
-Week 10 scoring path: [`scripts/run_twin_pass.py`](scripts/run_twin_pass.py) → [`eval/twin_pass.py`](src/wind_digital_twin/eval/twin_pass.py). End-to-end RUL timeline (requires `pip install -e path/to/grid-gnn-faults-2`): [`scripts/run_twin.py`](https://github.com/mehmetertac/grid-gnn-faults-2/blob/main/scripts/run_twin.py) in grid-gnn-faults-2.
+Week 10 scoring path: [`scripts/run_twin_pass.py`](scripts/run_twin_pass.py) → [`eval/twin_pass.py`](src/wind_digital_twin/eval/twin_pass.py). End-to-end RUL timeline (requires `pip install -e path/to/grid-gnn-faults`): [`scripts/run_twin.py`](https://github.com/mehmetertac/grid-gnn-faults/blob/main/scripts/run_twin.py) in grid-gnn-faults.
 
 ## End-to-end twin timeline (T06)
 
@@ -54,7 +61,7 @@ Week 10 scoring path: [`scripts/run_twin_pass.py`](scripts/run_twin_pass.py) →
 
 ## Why physics-informed? (PINN ablation)
 
-Week 10 guardrail: a 1-D heat equation \(u_t = \alpha u_{xx}\) on \([0,1]^2\) with sparse **initial and boundary** labels only (no interior sensors). A plain MLP fits those points; with **physics loss off** (`w_f=0`) it does not recover the true decay in the interior (relative L2 **~2.7×10⁻¹** vs analytical). The same architecture with a **PDE residual** at collocation points (`w_f=1`) matches the analytical solution (**~2.7×10⁻³** relative L2).
+Week 10 guardrail: a 1-D heat equation \(u_t = \alpha u_{xx}\) on \([0,1]^2\) with sparse **initial and boundary** labels only (no interior sensors). A plain MLP fits those points; with **physics loss off** (`w_f=0`) it does not recover the true decay in the interior (relative L2 **0.274** vs analytical). The same architecture with a **PDE residual** at collocation points (`w_f=1`) matches the analytical solution (relative L2 **0.00270**). Regenerate with `python scripts/run_pinn_heat.py` → `results/pinn/metrics.json`.
 
 ![PINN vs data-only vs analytical heat solution](docs/figures/pinn_ablation.png)
 
@@ -79,7 +86,7 @@ Pre-failure **degradation** shows in the timeline residuals and anomaly score, n
 
 ## Gearbox RUL (probabilistic + conformal)
 
-Daily aggregates of hybrid residuals, anomaly score, and θ features feed LightGBM quantiles at **P10/P50/P90**, widened with **MAPIE CQR** at 80%/90%. Evaluation is **leave-one-failure-out** on four catalogued EDP gearbox events (three turbines). Design: [grid-gnn-faults-2/docs/RUL_DESIGN.md](https://github.com/mehmetertac/grid-gnn-faults-2/blob/main/docs/RUL_DESIGN.md).
+Daily aggregates of hybrid residuals, anomaly score, and θ features feed LightGBM quantiles at **P10/P50/P90**, widened with **MAPIE CQR** at 80%/90%. Evaluation is **leave-one-failure-out** on four catalogued EDP gearbox events (three turbines). Design: [grid-gnn-faults/docs/RUL_DESIGN.md](https://github.com/mehmetertac/grid-gnn-faults/blob/main/docs/RUL_DESIGN.md).
 
 | Event | Turbine | LOFO MAE (P50) | Pinball q0.5 | Raw [P10,P90] coverage | CQR 80% coverage | P10 first below 14 d (days before failure) |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -88,21 +95,15 @@ Daily aggregates of hybrid residuals, anomaly score, and θ features feed LightG
 | T09 repair | T09 | — | — | — | — | — |
 | T09 noise | T09 | — | — | — | — | — |
 
-Em dashes until a fleet **scored CSV** is exported from this twin without refitting the ODE (`python scripts/run_twin.py` in grid-gnn-faults-2). **Coverage caveat:** split conformal guarantees are **marginal**; with four events, small calibration tails, and non-exchangeable run-to-failure windows, gaps versus 80%/90% are expected — not a tuning knob ([RUL_DESIGN.md](https://github.com/mehmetertac/grid-gnn-faults-2/blob/main/docs/RUL_DESIGN.md)).
+The columns below are the evaluation contract; numeric cells stay as em dashes until `python scripts/run_twin.py` in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults) writes a fleet **scored CSV** from this twin without refitting the ODE. **Coverage caveat:** split conformal guarantees are **marginal**; with four events, small calibration tails, and non-exchangeable run-to-failure windows, gaps versus 80%/90% are expected — not a tuning knob ([RUL_DESIGN.md](https://github.com/mehmetertac/grid-gnn-faults/blob/main/docs/RUL_DESIGN.md)).
 
 ![TreeSHAP — mean |SHAP| by sensor on P10 RUL (synthetic service export)](docs/figures/shap_sensor_ranking.png)
 
 The bar chart uses committed smoke weights in [`service/models/`](service/models/); re-run `service/scripts/export_models.py` after real EDP download for field-facing ranks.
 
-## ODE surrogate speedup (demo)
+## ODE surrogate (local timing demo)
 
-Small NN surrogate for batched lumped-ODE trajectories ([`thermal_surrogate.py`](src/wind_digital_twin/surrogate/thermal_surrogate.py), notebook [`notebooks/thermal_surrogate.ipynb`](notebooks/thermal_surrogate.ipynb)). **Not** the SCADA scoring path — illustration only. Requires `pip install -e ".[pinn]"`.
-
-| Metric | Value (local benchmark) |
-|--------|-------------------------|
-| ODE seconds / trajectory | ~1.46×10⁻³ |
-| NN seconds / trajectory | ~2.43×10⁻⁶ |
-| Speedup | **~600×** |
+Small NN surrogate for batched lumped-ODE trajectories ([`thermal_surrogate.py`](src/wind_digital_twin/surrogate/thermal_surrogate.py), notebook [`notebooks/thermal_surrogate.ipynb`](notebooks/thermal_surrogate.ipynb)). **Not** the SCADA scoring path — run the notebook locally for a wall-clock comparison; numbers are not committed fleet metrics. Requires `pip install -e ".[pinn]"`.
 
 ## What this tells an O&M planner (vs a SCADA alarm list)
 
@@ -139,7 +140,7 @@ Or `docker compose -f service/docker-compose.yml up --build`.
 | `POST /twin/rul` | Daily features → P10/P50/P90, CQR band, top-five **P10** sensor attributions |
 | `GET /twin/series` | Precomputed failure-window timeline for the dashboard scrubber |
 
-Gearbox RUL training, LOFO conformal evaluation, and TreeSHAP live in [grid-gnn-faults-2](https://github.com/mehmetertac/grid-gnn-faults-2). Week 11 reflection: [WEEK_11_REFLECTION.md](https://github.com/mehmetertac/grid-gnn-faults-2/blob/main/WEEK_11_REFLECTION.md).
+Gearbox RUL training, LOFO conformal evaluation, and TreeSHAP live in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults). Week 11 reflection: [WEEK_11_REFLECTION.md](https://github.com/mehmetertac/grid-gnn-faults/blob/main/WEEK_11_REFLECTION.md).
 
 ![Twin dashboard — T06 failure window scrub](docs/figures/twin_dashboard.png)
 
