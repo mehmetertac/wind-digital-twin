@@ -12,7 +12,6 @@ import joblib
 import numpy as np
 import pandas as pd
 import pyarrow  # noqa: F401 — required for timeline.to_parquet in CI/Docker
-import pyarrow  # noqa: F401 — required for timeline.to_parquet in CI/Docker
 from lightgbm import LGBMRegressor
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -21,6 +20,12 @@ MODELS_DIR = SERVICE_ROOT / "models"
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 sys.path.insert(0, str(SERVICE_ROOT / "src"))
 
+from twin_service.constants import (  # noqa: E402
+    DAILY_FEATURE_COLUMNS,
+    FEATURE_TO_SENSOR,
+    RUL_MAX_DAYS,
+    SENSOR_ORDER,
+)
 from wind_digital_twin.anomaly.hybrid_residual_detector import (  # noqa: E402
     fit_hybrid_residual_detector,
 )
@@ -37,13 +42,6 @@ from wind_digital_twin.eval.twin_pass import (  # noqa: E402
     threshold_from_healthy_holdout,
 )
 from wind_digital_twin.residual.fusion_features import build_fusion_feature_frame
-
-from twin_service.constants import (  # noqa: E402
-    DAILY_FEATURE_COLUMNS,
-    FEATURE_TO_SENSOR,
-    RUL_MAX_DAYS,
-    SENSOR_ORDER,
-)
 
 MODEL_VERSION = "synthetic-smoke-v1"
 LGBM_PARAMS = {

@@ -15,7 +15,6 @@ from client import (
     filter_series_to_date,
 )
 
-
 st.set_page_config(page_title="Wind twin dashboard", layout="wide")
 st.title("Wind gearbox digital twin")
 st.caption(f"API: `{api_url()}`")
