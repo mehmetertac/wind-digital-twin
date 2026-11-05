@@ -11,6 +11,8 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
+import pyarrow  # noqa: F401 — required for timeline.to_parquet in CI/Docker
+import pyarrow  # noqa: F401 — required for timeline.to_parquet in CI/Docker
 from lightgbm import LGBMRegressor
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]

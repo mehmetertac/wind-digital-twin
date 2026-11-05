@@ -17,7 +17,7 @@ jobs:
           cache-dependency-path: pyproject.toml
 
       - name: Install package
-        run: pip install -e ".[dev,serve,export]"
+        run: pip install -e ".[dev,serve,export]" && python -c "import pyarrow"
 
       - name: Synthetic EDP + serving artifacts
         run: |
