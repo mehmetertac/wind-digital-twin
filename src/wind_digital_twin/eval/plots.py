@@ -260,7 +260,7 @@ def plot_hybrid_vs_physics_rmse(
     ax.legend()
     ax.grid(True, axis="y", alpha=0.3)
 
-    for i, (p, h) in enumerate(zip(phys, hybrid)):
+    for i, (p, h) in enumerate(zip(phys, hybrid, strict=False)):
         if np.isfinite(p) and np.isfinite(h) and p > 0:
             pct = 100.0 * (p - h) / p
             ax.text(i, max(p, h) + 0.05, f"{pct:.0f}% ↓", ha="center", fontsize=8)

@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from wind_digital_twin.config import FEATURE_COLUMNS, GEARBOX_FAILURES
+from wind_digital_twin.config import GEARBOX_FAILURES
 from wind_digital_twin.utils import to_utc
 
 SYNTHETIC_TURBINES = ["T01", "T06", "T07", "T11"]
@@ -237,7 +237,7 @@ def generate_synthetic_edp_dataset(
     marker = output_dir / SYNTHETIC_MARKER
     marker.write_text(
         "Synthetic EDP-shaped data for local development. Not for publication metrics.\n"
-        f"Generated at {datetime.now(timezone.utc).isoformat()}\n",
+        f"Generated at {datetime.now(UTC).isoformat()}\n",
         encoding="utf-8",
     )
     return paths

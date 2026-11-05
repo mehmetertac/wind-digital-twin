@@ -8,14 +8,13 @@ from datetime import timedelta
 import numpy as np
 import pandas as pd
 
-from wind_digital_twin.utils import to_utc
-
 from wind_digital_twin.config import (
     DEFAULT_COOLDOWN_HOURS,
     DEFAULT_HORIZON_DAYS,
     DEFAULT_PERSISTENCE_SAMPLES,
     GearboxFailure,
 )
+from wind_digital_twin.utils import to_utc
 
 
 @dataclass

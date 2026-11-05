@@ -33,8 +33,8 @@ def _sample_scada_window(models_dir: Path) -> list[dict]:
     )
     if tid not in turbines:
         pytest.skip("Synthetic turbine missing from EDP")
-    from wind_digital_twin.data.clean import clean_turbine_df
     from wind_digital_twin.config import THERMAL_MIN_POWER_KW
+    from wind_digital_twin.data.clean import clean_turbine_df
 
     clean = clean_turbine_df(turbines[tid], min_power_kw=THERMAL_MIN_POWER_KW)
     tail = clean.tail(MIN_SCADA_ROWS + 20)

@@ -6,6 +6,10 @@ from dataclasses import dataclass
 
 import pandas as pd
 
+from wind_digital_twin.anomaly.isolation_forest import (
+    IsolationForestPipeline,
+    fit_isolation_forest,
+)
 from wind_digital_twin.config import (
     DEFAULT_CONTAMINATION,
     RESIDUAL_EWMA_SPAN,
@@ -16,10 +20,6 @@ from wind_digital_twin.config import (
 from wind_digital_twin.physics.gearbox_thermal import (
     GearboxThermalModel,
     fit_gearbox_thermal_with_selection,
-)
-from wind_digital_twin.anomaly.isolation_forest import (
-    IsolationForestPipeline,
-    fit_isolation_forest,
 )
 from wind_digital_twin.residual.residual_features import build_residual_feature_frame
 

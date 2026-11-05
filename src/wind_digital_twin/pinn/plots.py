@@ -10,8 +10,8 @@ import torch
 
 from wind_digital_twin.pinn.heat1d import (
     ALPHA,
-    HeatTrainingData,
     MLP,
+    HeatTrainingData,
     analytical_solution,
 )
 
@@ -65,7 +65,7 @@ def plot_ablation_slices(
     if n_slices == 1:
         axes = [axes]
 
-    for ax, t_val in zip(axes, slice_times):
+    for ax, t_val in zip(axes, slice_times, strict=False):
         j = int(np.argmin(np.abs(t - t_val)))
         u_true = u_true_grid[:, j]
         ax.plot(x, u_true, "k-", lw=2, label="Analytical")
@@ -101,7 +101,7 @@ def plot_ablation_slices(
 
     axes[0].set_ylabel("u(x, t)")
     handles, labels = axes[0].get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
+    by_label = dict(zip(labels, handles, strict=False))
     fig.legend(by_label.values(), by_label.keys(), loc="upper center", ncol=4, fontsize=9)
     fig.suptitle(
         f"Heat PINN ablation (rel. L2: PINN={l2_pinn:.2e}, data-only={l2_data:.2e})",
@@ -134,7 +134,7 @@ def plot_error_heatmaps(
     for ax, err, title in zip(
         axes,
         (err_pinn, err_data),
-        ("PINN |error|", "Data-only |error|"),
+        ("PINN |error|", "Data-only |error|"), strict=False,
     ):
         im = ax.imshow(
             err.T,

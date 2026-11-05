@@ -29,19 +29,19 @@ from twin_service.constants import (  # noqa: E402
 from wind_digital_twin.anomaly.hybrid_residual_detector import (  # noqa: E402
     fit_hybrid_residual_detector,
 )
-from wind_digital_twin.config import DATA_RAW, GEARBOX_FAILURES, THERMAL_MIN_POWER_KW
-from wind_digital_twin.data.clean import (
+from wind_digital_twin.config import DATA_RAW, GEARBOX_FAILURES, THERMAL_MIN_POWER_KW  # noqa: E402
+from wind_digital_twin.data.clean import (  # noqa: E402
     clean_turbine_df,
     get_failure_for_turbine,
     healthy_training_mask,
 )
-from wind_digital_twin.data.load_edp import load_edp_dataset
-from wind_digital_twin.data.synthetic_edp import generate_synthetic_edp_dataset
+from wind_digital_twin.data.load_edp import load_edp_dataset  # noqa: E402
+from wind_digital_twin.data.synthetic_edp import generate_synthetic_edp_dataset  # noqa: E402
 from wind_digital_twin.eval.twin_pass import (  # noqa: E402
     build_twin_layer_frame,
     threshold_from_healthy_holdout,
 )
-from wind_digital_twin.residual.fusion_features import build_fusion_feature_frame
+from wind_digital_twin.residual.fusion_features import build_fusion_feature_frame  # noqa: E402
 
 MODEL_VERSION = "synthetic-smoke-v1"
 LGBM_PARAMS = {

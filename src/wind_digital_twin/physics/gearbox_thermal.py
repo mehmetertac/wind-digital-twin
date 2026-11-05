@@ -295,7 +295,7 @@ def validate_thermal_model(
         pipeline = model.model
         ridge = pipeline.named_steps["ridge"]  # type: ignore[union-attr]
         coefs = ridge.coef_.tolist()
-        model_details["coefficients"] = dict(zip(model.feature_names, coefs))
+        model_details["coefficients"] = dict(zip(model.feature_names, coefs, strict=False))
         model_details["intercept"] = float(ridge.intercept_)
     elif model.model_kind == "lumped_ode" and isinstance(model.model, LumpedThermalParams):
         model_details["tau_minutes"] = model.model.tau_minutes

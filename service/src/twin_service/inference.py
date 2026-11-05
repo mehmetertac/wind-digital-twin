@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from twin_service.artifacts import LoadedArtifacts, bundle_rul_max
-from twin_service.constants import DAILY_FEATURE_COLUMNS, MIN_SCADA_ROWS, RUL_MAX_DAYS
+from twin_service.constants import DAILY_FEATURE_COLUMNS, MIN_SCADA_ROWS
 from twin_service.schema import (
     ScoredPoint,
     SensorAttribution,

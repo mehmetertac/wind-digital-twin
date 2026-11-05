@@ -6,16 +6,15 @@ from datetime import timedelta
 
 import pandas as pd
 
-from wind_digital_twin.utils import to_utc
-
 from wind_digital_twin.config import (
     DEFAULT_BUFFER_DAYS,
     FEATURE_COLUMNS,
     FUSION_OPTIONAL_COLUMNS,
-    GearboxFailure,
     MIN_POWER_KW,
     POWER_COLUMN,
+    GearboxFailure,
 )
+from wind_digital_twin.utils import to_utc
 
 
 def resolve_feature_columns(

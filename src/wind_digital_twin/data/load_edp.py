@@ -8,8 +8,8 @@ import pandas as pd
 
 from wind_digital_twin.config import (
     FAILURE_FILE_ALIASES,
-    GearboxFailure,
     SIGNAL_FILE_ALIASES,
+    GearboxFailure,
 )
 
 

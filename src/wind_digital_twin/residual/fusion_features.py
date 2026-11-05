@@ -62,7 +62,7 @@ def build_fusion_feature_frame(
     """
     power = df[POWER_COLUMN]
     rpm = df[RPM_COL]
-    nac = df[NAC_COL]
+    df[NAC_COL]
     mask = (power > min_power_kw) & (rpm > min_rpm)
     sub = df.loc[mask].copy()
 

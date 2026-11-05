@@ -21,11 +21,11 @@ from twin_service.logging_config import log_request, new_request_id
 from twin_service.schema import (
     HealthResponse,
     SeriesResponse,
+    TurbinesResponse,
     TwinRulRequest,
     TwinRulResponse,
     TwinScoreRequest,
     TwinScoreResponse,
-    TurbinesResponse,
 )
 
 logger = logging.getLogger(__name__)
