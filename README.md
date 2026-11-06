@@ -7,7 +7,7 @@
 
 A **hybrid digital twin** for wind-turbine **gearbox thermal** health: when SCADA says “bearing temperature high,” that alarm does not tell you whether the turbine is simply running hot at high load or producing **extra heat the operating point cannot explain**. This repo estimates load-conditioned expected oil and bearing temperature (lumped thermal ODE + learned residual correction), flags sustained degradation in the **hybrid residual**, and serves probabilistic gearbox RUL bands with sensor attributions over **FastAPI + Streamlit**. Built for **O&M planners and asset-analytics interviews** — advisory inspection timing, not turbine control. RUL training and leave-one-failure-out evaluation live in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults); this repo ships the physics path, figures, and deployment layer (**v1.0.0**).
 
-**Long-form article (placeholder):** *From the turbine floor to the model: physics-informed anomaly detection with field intuition* — link pending Saturday.
+**Long-form article (draft):** [*From the turbine floor to the model: physics-informed anomaly detection with field intuition*](docs/from-the-turbine-floor.md) — edit and publish Saturday.
 
 Full taxonomy, fidelity levels, and pipeline diagram: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
