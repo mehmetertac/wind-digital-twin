@@ -7,7 +7,7 @@
 
 A **hybrid digital twin** for wind-turbine **gearbox thermal** health: when SCADA says “bearing temperature high,” that alarm does not tell you whether the turbine is simply running hot at high load or producing **extra heat the operating point cannot explain**. This repo estimates load-conditioned expected oil and bearing temperature (lumped thermal ODE + learned residual correction), flags sustained degradation in the **hybrid residual**, and serves probabilistic gearbox RUL bands with sensor attributions over **FastAPI + Streamlit**. Built for **O&M planners and asset-analytics interviews** — advisory inspection timing, not turbine control. RUL training and leave-one-failure-out evaluation live in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults); this repo ships the physics path, figures, and deployment layer (**v1.0.0**).
 
-**Long-form article (draft):** [*From the turbine floor to the model: physics-informed anomaly detection with field intuition*](docs/from-the-turbine-floor.md) — edit and publish Saturday.
+**Long-form article:** [*From the turbine floor to the model: physics-informed anomaly detection with field intuition*](docs/from-the-turbine-floor.md)
 
 Full taxonomy, fidelity levels, and pipeline diagram: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
@@ -90,12 +90,12 @@ Daily aggregates of hybrid residuals, anomaly score, and θ features feed LightG
 
 | Event | Turbine | LOFO MAE (P50) | Pinball q0.5 | Raw [P10,P90] coverage | CQR 80% coverage | P10 first below 14 d (days before failure) |
 | --- | --- | --- | --- | --- | --- | --- |
-| T01 pump damage | T01 | — | — | — | — | — |
-| T06 bearing damage | T06 | — | — | — | — | — |
-| T09 repair | T09 | — | — | — | — | — |
-| T09 noise | T09 | — | — | — | — | — |
+| T01 pump damage | T01 | 44.50 | 22.25 | 0.01 | 0.01 | none |
+| T06 bearing damage | T06 | 44.50 | 22.25 | 0.01 | 0.44 | none |
+| T09 repair | T09 | 44.50 | 22.25 | 0.01 | 0.87 | none |
+| T09 noise | T09 | 44.50 | 22.25 | 0.01 | 0.01 | none |
 
-The columns below are the evaluation contract; numeric cells stay as em dashes until `python scripts/run_twin.py` in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults) writes a fleet **scored CSV** from this twin without refitting the ODE. **Coverage caveat:** split conformal guarantees are **marginal**; with four events, small calibration tails, and non-exchangeable run-to-failure windows, gaps versus 80%/90% are expected — not a tuning knob ([RUL_DESIGN.md](https://github.com/mehmetertac/grid-gnn-faults/blob/main/docs/RUL_DESIGN.md)).
+**Synthetic EDP** (five turbines, four catalog gearbox events): produced by `python scripts/run_twin.py --fleet` in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults) on this twin’s scored series, then `python scripts/evaluate_quantile_rul.py --scored … --failures …`. Not Hack-the-Wind field data and not a crane-booking SLA. **`none`** means pessimistic P10 never dropped below 14 days in the held-out window on this run (quantiles sat on the 90-day cap). **Coverage caveat:** split conformal guarantees are **marginal**; with four events, small calibration tails, and non-exchangeable run-to-failure windows, gaps versus 80%/90% are expected — not a tuning knob ([RUL_DESIGN.md](https://github.com/mehmetertac/grid-gnn-faults/blob/main/docs/RUL_DESIGN.md)).
 
 ![TreeSHAP — mean |SHAP| by sensor on P10 RUL (synthetic service export)](docs/figures/shap_sensor_ranking.png)
 
