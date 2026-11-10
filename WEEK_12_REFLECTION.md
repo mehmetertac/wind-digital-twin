@@ -20,7 +20,7 @@ These nine match the study plan’s “Day 90” list. Each shipped as a public 
 
 6. **energy-forecasting-service** — Week 9: TFT (from the hierarchy sibling) through **MLflow, Docker, FastAPI, CI, Streamlit** — the “repo recruiters click first.” MinT reconciliation stays in **multi-site-solar-hierarchy**; the service ships global plant TFT serving.
 
-7. **wind-digital-twin** — Weeks 10–11: capstone **v1.0.0** — lumped thermal ODE, GBM healthy residual correction, hybrid-residual Isolation Forest, twin pass + figures, **FastAPI + Streamlit** Week 11 layer. Healthy RMSE table filled on **synthetic EDP**; RUL table numeric cells for LOFO / P10 lead metrics are still **em dashes** until `run_twin.py` writes a fleet scored CSV from grid-gnn-faults.
+7. **wind-digital-twin** — Weeks 10–11: capstone **v1.0.0** — lumped thermal ODE, GBM healthy residual correction, hybrid-residual Isolation Forest, twin pass + figures, **FastAPI + Streamlit** Week 11 layer. Healthy RMSE table filled on **synthetic EDP**; RUL LOFO metrics committed from `run_twin.py --fleet` + `evaluate_quantile_rul.py` — **P10 first below 14 d** is **`none`** on all four events (no P10 &lt; 14 d in LOFO windows on that run).
 
 8. **grid-gnn-faults** — Week 11: gearbox RUL labels, quantiles, CQR, TreeSHAP, export contract for the twin; **IEEE 39-bus** fault localization GCN vs MLP — the GCN **underperforms** the MLP on the published table (accuracy **0.662** vs **0.956**; mean hop error **0.85** vs **0.06**), which is an honest “intro GNN, not SOTA” result. **v0.1.0** tagged.
 
@@ -41,7 +41,7 @@ Weeks **4**, **5**, and **8** live in sibling repos so the arc is not erased: **
 
 **Mine**
 
-- **RUL on few failures** — four gearbox log lines on three turbines; LOFO and CQR are demonstration contracts, not fleet guarantees; the README table row “P10 first below 14 d” is still **empty** until the scored export exists.
+- **RUL on few failures** — four gearbox log lines on three turbines; LOFO and CQR are demonstration contracts, not fleet guarantees; README **P10 first below 14 d** is **`none`** on the synthetic fleet export (not integer lead times).
 - **GNN dynamics** — the grid repo is **static** bus classification on simulated snapshots, not a dynamic stability or cascading-outage model; the GCN lost to an MLP on the shipped metrics.
 - **Real EDP in the scoring path** — figures default to **synthetic EDP** until downloads and re-runs land; anyone comparing to Hack-the-Wind numbers must rerun on real CSVs.
 
@@ -53,7 +53,7 @@ Weeks **4**, **5**, and **8** live in sibling repos so the arc is not erased: **
 - **Week 10** — PINN stayed a **small 1-D heat toy** (relative L2 **0.274** with physics loss off vs **0.00270** with PDE residual) — read two papers max, build the demo, move on. That matches the plan.
 - **Week 12** — LLM/RAG was **optional** if capstone polish was behind; the twin was already **v1.0.0**, so **scada-rag-copilot** shipped and then **stopped** (no tool-use extension per handover).
 
-The real slip is **data and fleet scoring**, not a skipped week: the RUL lead-time column and field-grade calibration need the export pipeline on **real** or agreed-synthetic fleet CSVs, not new architecture.
+The real slip is **field data**, not a skipped week: synthetic fleet LOFO is in the README (**P10 lead `none`**); **real** EDP re-run and field-grade calibration are what might move integer lead times — not new architecture.
 
 ---
 
@@ -71,7 +71,7 @@ The real slip is **data and fleet scoring**, not a skipped week: the RUL lead-ti
 
 ## First thing I would build in Month 4
 
-**No new repo.** Run the **existing** `run_twin.py` / fleet scored-CSV path in **grid-gnn-faults** so the twin README’s **P10 first below 14 d** column fills with defensible numbers (still labeled **synthetic** until real EDP is in the path). That single export unblocks the sentence this week’s article could not honestly quote — and it is the difference between a “contract table” demo and a maintenance story you can repeat without em dashes.
+**No new repo.** Re-run the fleet path on **real** EDP when downloaded so **P10 first below 14 d** might show integer warnings; synthetic export is already in the README with **`none`** where P10 never crossed 14 days. Month 4 is real data + honest integers, not tuning for a prettier cell.
 
 ---
 
