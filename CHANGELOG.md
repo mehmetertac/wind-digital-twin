@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `requirements.lock` (hashed universal lock for base + `dev` + `serve` + `export`).
+- CI **repro** job: clean clone, wheels-only `pip install`, import smoke on `ubuntu-latest` and `windows-latest`.
+
+### Changed
+
+- `requires-python` pinned to `>=3.11,<3.13`; README quickstart documents wheels-only install.
+- Cap `scipy`, pin `scikit-learn>=1.9` for committed joblib artifacts, and cap `lightgbm<4.6` (4.7.0 native predict fails on Windows in CI/repro).
+
 ## [1.0.1] - 2026-11-05
 
 ### Fixed

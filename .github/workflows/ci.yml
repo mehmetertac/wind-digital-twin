@@ -5,6 +5,56 @@ on:
   pull_request:
 
 jobs:
+  repro:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Wheels-only install and smoke
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python -m venv .venv
+          if [ -x .venv/Scripts/python.exe ]; then
+            PY=.venv/Scripts/python
+            PIP=.venv/Scripts/pip
+          else
+            PY=.venv/bin/python
+            PIP=.venv/bin/pip
+          fi
+          "$PY" -m pip install --upgrade pip
+          "$PIP" install --only-binary=:all: --require-hashes -r requirements.lock
+          "$PIP" install --no-deps --no-build-isolation .
+          "$PY" -c "
+          from pathlib import Path
+          import numpy as np
+          import wind_digital_twin
+          import twin_service
+          import pyarrow
+          import lightgbm
+          import shap
+          import fastapi
+          assert 'site-packages' in Path(wind_digital_twin.__file__).parts
+          from wind_digital_twin.physics.lumped_ode import LumpedThermalParams, equilibrium_temperature
+          p = LumpedThermalParams(tau_seconds=600.0, beta_0=1.0, beta_p=0.01, beta_rpm=0.001)
+          out = equilibrium_temperature(
+              np.array([15.0]),
+              np.array([500.0]),
+              np.array([12.0]),
+              p,
+          )
+          assert out.shape == (1,)
+          print('repro smoke ok', out[0])
+          "
+
   ci:
     runs-on: ubuntu-latest
     steps:

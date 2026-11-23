@@ -67,12 +67,7 @@ pytest tests/ -q
 python scripts/check_file_size.py
 ```
 
-**Git hooks:** After creating the venv:
-
-```powershell
-pip install -e ".[dev]"
-pre-commit install
-```
+**Git hooks:** After creating the venv, use the wheels-only lock install in [README.md](README.md#quickstart), then `pre-commit install`. For a quick unlocked editable install: `pip install -e ".[dev]"`.
 
 Hooks run file-size check + pytest (see [`.pre-commit-config.yaml`](.pre-commit-config.yaml)). If hooks do not exist yet, create them.
 

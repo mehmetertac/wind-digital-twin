@@ -1,7 +1,7 @@
 # wind-digital-twin
 
 [![ci](https://github.com/mehmetertac/wind-digital-twin/actions/workflows/ci.yml/badge.svg)](https://github.com/mehmetertac/wind-digital-twin/actions/workflows/ci.yml)
-![Python >=3.10](https://img.shields.io/badge/python-%3E%3D3.10-blue)
+![Python 3.11–3.12](https://img.shields.io/badge/python-3.11--3.12-blue)
 ![License](https://img.shields.io/badge/license-Apache--2.0-green)
 [![Release](https://img.shields.io/github/v/release/mehmetertac/wind-digital-twin)](https://github.com/mehmetertac/wind-digital-twin/releases)
 
@@ -13,13 +13,34 @@ Full taxonomy, fidelity levels, and pipeline diagram: **[docs/ARCHITECTURE.md](d
 
 ## Quickstart
 
+Pinned deps for **Python 3.11–3.12**: install from [requirements.lock](requirements.lock) with wheels only (no source builds for NumPy/SciPy/PyArrow), then install this package without pulling deps again:
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -e ".[dev]"
+python -m pip install --upgrade pip
+python -m pip install --only-binary=:all: --require-hashes -r requirements.lock
+python -m pip install --no-deps --no-build-isolation -e .
 pre-commit install
+```
 
-# Optional: PINN heat toy (PyTorch; CI stays torch-free by default)
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install --only-binary=:all: --require-hashes -r requirements.lock
+python -m pip install --no-deps --no-build-isolation -e .
+```
+
+Regenerate the lock after changing [pyproject.toml](pyproject.toml) (needs [uv](https://docs.astral.sh/uv/)):
+
+```powershell
+uv pip compile pyproject.toml --universal --python-version 3.11 --extra dev --extra serve --extra export --generate-hashes -o requirements.lock
+```
+
+Optional editable extras without the lock: `pip install -e ".[dev]"` (less reproducible). **PINN** / PyTorch is not in the lock; CI stays torch-free by default:
+
+```powershell
 pip install -e ".[pinn]"
 python scripts/run_pinn_heat.py
 

@@ -5,8 +5,8 @@ Streamlit UI for the Week 11 deployment — reads the FastAPI service only.
 ## Run locally
 
 ```powershell
+# Core API deps: see repo README (wheels-only `requirements.lock` + `pip install -e .`) or `pip install -e ".[serve]"`.
 pip install -r service/dashboard/requirements.txt
-pip install -e ".[serve]"
 python service/scripts/export_models.py
 $env:TWIN_MODELS_DIR = "service/models"
 uvicorn twin_service.api.app:app --port 8000

@@ -1,6 +1,6 @@
 # handover.md
 
-**Last updated:** 2026-11-05
+**Last updated:** 2026-11-23
 
 Track B capstone **v1.0.0**: hybrid drivetrain digital twin with Week 11 **FastAPI + Streamlit** serving. Gearbox RUL, CQR, and SHAP live in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults). IEEE 39-bus GNN demo lives in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults) only.
 
@@ -20,6 +20,7 @@ Track B capstone **v1.0.0**: hybrid drivetrain digital twin with Week 11 **FastA
 | [docs/figures/shap_sensor_ranking.png](docs/figures/shap_sensor_ranking.png) | Done (synthetic export) |
 | Real EDP re-export of serving models + filled RUL metrics table | Pending when data downloaded |
 | **`CHANGELOG.md`** + CI pandas pin (`pandas<3` for parquet export) | Done |
+| **Reproducibility** — `requires-python` `>=3.11,<3.13`, `requirements.lock`, wheels-only README, CI **repro** job (ubuntu + windows) | Done |
 | Release tag **`v1.0.1`** (portfolio polish; **`v1.0.0`** unchanged on remote) | Pending push |
 
 ---
@@ -33,4 +34,4 @@ Track B capstone **v1.0.0**: hybrid drivetrain digital twin with Week 11 **FastA
 
 ## Key commit
 
-Portfolio polish — `CHANGELOG.md`, CI parquet fix (`pandas<3`), refreshed `twin_dashboard.gif`, release v1.0.1 (pending push).
+Reproducibility sweep — Python 3.11–3.12 pin, hashed `requirements.lock`, wheels-only install docs, CI repro smoke on ubuntu-latest and windows-latest.
