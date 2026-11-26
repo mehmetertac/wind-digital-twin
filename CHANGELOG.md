@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- CARE-to-Compare: Zenodo v6 WF-A downloader, vendored `CAREScore`, channel map, loader, hybrid/ablation scoring scripts, and tests.
 - `requirements.lock` (hashed universal lock for base + `dev` + `serve` + `export`).
 - CI **repro** job: clean clone, wheels-only `pip install`, import smoke on `ubuntu-latest` and `windows-latest`.
 

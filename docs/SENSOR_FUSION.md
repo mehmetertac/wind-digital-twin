@@ -213,3 +213,26 @@ Ground truth: [`GEARBOX_FAILURES`](../src/wind_digital_twin/config.py). Evaluati
 3. Learned corrector + hybrid detector — [`learned_residual.py`](../src/wind_digital_twin/residual/learned_residual.py), [`hybrid_residual_detector.py`](../src/wind_digital_twin/anomaly/hybrid_residual_detector.py).
 
 **Next:** confirm optional column names on first real EDP CSV header; extend imbalance/pitch features when columns verify.
+
+---
+
+## CARE Wind Farm A channel map (Zenodo v6)
+
+Wind Farm A in [CARE-to-Compare](https://zenodo.org/records/15846963) is anonymized EDP Portugal SCADA (semicolon CSVs, 86 features). Mapped **average** channels used by the twin path:
+
+| CARE feature | Twin / fusion role | Group |
+|--------------|-------------------|--------|
+| `sensor_0_avg` | `Amb_Temp_Avg` | environmental |
+| `sensor_1_avg` | `Amb_WindDir_Relative_Avg` | environmental |
+| `sensor_11_avg` | `Gear_Bear_Temp_Avg` | thermal |
+| `sensor_12_avg` | `Gear_Oil_Temp_Avg` | thermal |
+| `sensor_43_avg` | `Nac_Temp_Avg` | thermal |
+| `power_30_avg` | `Grd_Prod_Pwr_Avg` (× 2000 kW rated) | electrical |
+| `wind_speed_3_avg` | `Amb_WindSpeed_Avg` | environmental |
+| `sensor_52_avg` | `Rtr_RPM_Avg` | mechanical |
+| `sensor_18_avg` | `Gen_RPM_Avg` | mechanical |
+| `sensor_5_avg` | `Blds_PitchAngle_Avg` | mechanical |
+| `sensor_23–25_avg` | phase currents | electrical |
+| `sensor_32–34_avg` | phase voltages | electrical |
+
+Full table: [`care_wfa_channel_map.csv`](../src/wind_digital_twin/data/care_wfa_channel_map.csv). Loader: [`load_care.py`](../src/wind_digital_twin/data/load_care.py) + `to_twin_frame()`. Evaluation: [`care_score.py`](../src/wind_digital_twin/eval/care_score.py) with `ignore_normal_index=True` on WF-A (per authors’ FAQ).

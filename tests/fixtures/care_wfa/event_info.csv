@@ -1,0 +1,3 @@
+asset;event_id;event_label;event_start;event_end;event_description
+10;99;anomaly;2023-01-01 00:00:00;2023-01-05 00:00:00;Gearbox failure
+10;100;normal;2023-02-01 00:00:00;2023-02-05 00:00:00;

@@ -1,0 +1,82 @@
+sensor,statistic_type,feature,description,unit,group,twin_role
+sensor_0,average,sensor_0_avg,Ambient temperature,�C,thermal,Amb_Temp_Avg
+sensor_1,average,sensor_1_avg,Wind absolute direction,�,environmental,Amb_WindDir_Relative_Avg
+sensor_2,average,sensor_2_avg,Wind relative direction,�,environmental,
+wind_speed_3,maximum,wind_speed_3_max,Windspeed,m/s,environmental,
+wind_speed_3,minimum,wind_speed_3_min,Windspeed,m/s,environmental,
+wind_speed_3,average,wind_speed_3_avg,Windspeed,m/s,environmental,Amb_WindSpeed_Avg
+wind_speed_3,std_dev,wind_speed_3_std,Windspeed,m/s,environmental,
+wind_speed_4,average,wind_speed_4_avg,Estimated windspeed,m/s,environmental,
+sensor_5,maximum,sensor_5_max,Pitch angle,�,mechanical,
+sensor_5,minimum,sensor_5_min,Pitch angle,�,mechanical,
+sensor_5,std_dev,sensor_5_std,Pitch angle,�,mechanical,
+sensor_5,average,sensor_5_avg,Pitch angle,�,mechanical,Blds_PitchAngle_Avg
+sensor_6,average,sensor_6_avg,Temperature in the hub controller,�C,thermal,
+sensor_7,average,sensor_7_avg,Temperature in the top nacelle controller,�C,thermal,
+sensor_8,average,sensor_8_avg,Temperature in the choke coils on the VCS-section,�C,thermal,
+sensor_9,average,sensor_9_avg,Temperature on the VCP-board,�C,thermal,
+sensor_10,average,sensor_10_avg,Temperature in the VCS cooling water,�C,thermal,
+sensor_11,average,sensor_11_avg,Temperature in gearbox bearing on high speed shaft,�C,thermal,Gear_Bear_Temp_Avg
+sensor_12,average,sensor_12_avg,Temperature oil in gearbox,�C,thermal,Gear_Oil_Temp_Avg
+sensor_13,average,sensor_13_avg,Temperature in generator bearing 2 (Drive End),�C,thermal,
+sensor_14,average,sensor_14_avg,Temperature in generator bearing 1 (Non-Drive End),�C,thermal,
+sensor_15,average,sensor_15_avg,Temperature inside generator in stator windings phase 1,�C,thermal,
+sensor_16,average,sensor_16_avg,Temperature inside generator in stator windings phase 2,�C,thermal,
+sensor_17,average,sensor_17_avg,Temperature inside generator in stator windings phase 3,�C,thermal,
+sensor_18,maximum,sensor_18_max,Generator rpm in latest period,rpm,mechanical,
+sensor_18,minimum,sensor_18_min,Generator rpm in latest period,rpm,mechanical,
+sensor_18,average,sensor_18_avg,Generator rpm in latest period,rpm,mechanical,Gen_RPM_Avg
+sensor_18,std_dev,sensor_18_std,Generator rpm in latest period,rpm,mechanical,
+sensor_19,average,sensor_19_avg,Temperature in the split ring chamber,�C,thermal,
+sensor_20,average,sensor_20_avg,Temperature in the busbar section,�C,thermal,
+sensor_21,average,sensor_21_avg,Temperature measured by the IGBT-driver on the grid side inverter,�C,thermal,
+sensor_22,average,sensor_22_avg,Actual phase displacement,nan,other,
+sensor_23,average,sensor_23_avg,Averaged current in phase 1,A,electrical,Grd_Prod_CurPhse1_Avg
+sensor_24,average,sensor_24_avg,Averaged current in phase 2,A,electrical,Grd_Prod_CurPhse2_Avg
+sensor_25,average,sensor_25_avg,Averaged current in phase 3,A,electrical,Grd_Prod_CurPhse3_Avg
+sensor_26,average,sensor_26_avg,Grid frequency,Hz,electrical,
+reactive_power_27,average,reactive_power_27_avg,Possible grid capacitive reactive power,kVAr,electrical,
+reactive_power_27,maximum,reactive_power_27_max,Possible grid capacitive reactive power,kVAr,electrical,
+reactive_power_27,minimum,reactive_power_27_min,Possible grid capacitive reactive power,kVAr,electrical,
+reactive_power_27,std_dev,reactive_power_27_std,Possible grid capacitive reactive power,kVAr,electrical,
+reactive_power_28,average,reactive_power_28_avg,Possible grid inductive reactive power,kVAr,electrical,
+reactive_power_28,maximum,reactive_power_28_max,Possible grid inductive reactive power,kVAr,electrical,
+reactive_power_28,minimum,reactive_power_28_min,Possible grid inductive reactive power,kVAr,electrical,
+reactive_power_28,std_dev,reactive_power_28_std,Possible grid inductive reactive power,kVAr,electrical,
+power_29,maximum,power_29_max,Possible grid active power,kW,electrical,
+power_29,std_dev,power_29_std,Possible grid active power,kW,electrical,
+power_29,average,power_29_avg,Possible grid active power,kW,electrical,
+power_29,minimum,power_29_min,Possible grid active power,kW,electrical,
+power_30,maximum,power_30_max,Grid power,kW,electrical,
+power_30,std_dev,power_30_std,Grid power,kW,electrical,
+power_30,minimum,power_30_min,Grid power,kW,electrical,
+power_30,average,power_30_avg,Grid power,kW,electrical,Grd_Prod_Pwr_Avg
+sensor_31,average,sensor_31_avg,Grid reactive power,kVAr,electrical,
+sensor_31,maximum,sensor_31_max,Grid reactive power,kVAr,electrical,
+sensor_31,minimum,sensor_31_min,Grid reactive power,kVAr,electrical,
+sensor_31,std_dev,sensor_31_std,Grid reactive power,kVAr,electrical,
+sensor_32,average,sensor_32_avg,Averaged voltage in phase 1,V,electrical,Grd_Prod_VoltPhse1_Avg
+sensor_33,average,sensor_33_avg,Averaged voltage in phase 2,V,electrical,Grd_Prod_VoltPhse2_Avg
+sensor_34,average,sensor_34_avg,Averaged voltage in phase 3,V,electrical,Grd_Prod_VoltPhse3_Avg
+sensor_35,average,sensor_35_avg,Temperature measured by the IGBT-driver on the rotor side inverter phase1,�C,thermal,
+sensor_36,average,sensor_36_avg,Temperature measured by the IGBT-driver on the rotor side inverter phase2,�C,thermal,
+sensor_37,average,sensor_37_avg,Temperature measured by the IGBT-driver on the rotor side inverter phase3,�C,thermal,
+sensor_38,average,sensor_38_avg,Temperature in HV transformer phase L1,�C,thermal,
+sensor_39,average,sensor_39_avg,Temperature in HV transformer phase L2,�C,thermal,
+sensor_40,average,sensor_40_avg,Temperature in HV transformer phase L3,�C,thermal,
+sensor_41,average,sensor_41_avg,Temperature oil in hydraulic group,�C,thermal,
+sensor_42,average,sensor_42_avg,Nacelle direction,�,environmental,
+sensor_43,average,sensor_43_avg,Nacelle temperature,�C,thermal,Nac_Temp_Avg
+sensor_44,average,sensor_44_avg,Active power - generator disconnected,Wh,electrical,
+sensor_45,average,sensor_45_avg,Active power - generator connected in delta,Wh,electrical,
+sensor_46,average,sensor_46_avg,Active power - generator connected in star,Wh,electrical,
+sensor_47,average,sensor_47_avg,Reactive power - generator disconnected,VArh,electrical,
+sensor_48,average,sensor_48_avg,Reactive power - generator connected in delta,VArh,electrical,
+sensor_49,average,sensor_49_avg,Reactive power - generator connected in star,VArh,electrical,
+sensor_50,average,sensor_50_avg,Total active power,Wh,electrical,
+sensor_51,average,sensor_51_avg,Total reactive power,VArh,electrical,
+sensor_52,minimum,sensor_52_min,Rotor rpm,rpm,mechanical,
+sensor_52,average,sensor_52_avg,Rotor rpm,rpm,mechanical,Rtr_RPM_Avg
+sensor_52,std_dev,sensor_52_std,Rotor rpm,rpm,mechanical,
+sensor_52,maximum,sensor_52_max,Rotor rpm,rpm,mechanical,
+sensor_53,average,sensor_53_avg,Temperature in the nose cone,�C,thermal,

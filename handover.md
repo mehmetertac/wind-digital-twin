@@ -1,6 +1,6 @@
 # handover.md
 
-**Last updated:** 2026-11-23
+**Last updated:** 2026-11-26
 
 Track B capstone **v1.0.0**: hybrid drivetrain digital twin with Week 11 **FastAPI + Streamlit** serving. Gearbox RUL, CQR, and SHAP live in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults). IEEE 39-bus GNN demo lives in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults) only.
 
@@ -21,17 +21,19 @@ Track B capstone **v1.0.0**: hybrid drivetrain digital twin with Week 11 **FastA
 | Real EDP re-export of serving models + filled RUL metrics table | Pending when data downloaded |
 | **`CHANGELOG.md`** + CI pandas pin (`pandas<3` for parquet export) | Done |
 | **Reproducibility** — `requires-python` `>=3.11,<3.13`, `requirements.lock`, wheels-only README, CI **repro** job (ubuntu + windows) | Done |
+| **CARE-to-Compare** — scorer, loader, downloader, hybrid + ablation scripts, tests, `care_wfa_channel_map.csv`; WF-A scores in `results/care/` | Done (local data not committed) |
 | Release tag **`v1.0.1`** (portfolio polish; **`v1.0.0`** unchanged on remote) | Pending push |
 
 ---
 
 ## Suggested next step
 
-1. Re-run `export_models.py` after real EDP download (do not refit ODE in grid-gnn-faults).
-2. Export scored CSV and fill LOFO RUL / lead-time table in README from grid-gnn-faults CLI.
+1. Improve WF-A CARE (e.g. tuned AE or hybrid P95) vs ablation table in `results/care/wfa_ablations.json` (best so far ~0.58 AE gearbox-only).
+2. Add Mendeley v2 per-turbine importer (`zjxjnjp3xs/2`).
+3. Re-run `export_models.py` after real EDP download for serving.
 
 ---
 
 ## Key commit
 
-Reproducibility sweep — Python 3.11–3.12 pin, hashed `requirements.lock`, wheels-only install docs, CI repro smoke on ubuntu-latest and windows-latest.
+CARE groundwork — vendored MIT CARE scorer, Zenodo v6 WF-A range download, EDP channel map (oil/bear/power/RPM), loader + baseline script, Mendeley v2 docs.

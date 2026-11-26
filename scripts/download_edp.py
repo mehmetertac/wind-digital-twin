@@ -32,11 +32,18 @@ Accepted filenames (any alias works):
   - htw-failures-2016.csv         OR  Historical-Failure-Logbook-2016.csv
   - htw-failures-2017.csv         OR  opendata-wind-failures-2017.csv
 
-Mendeley fallback (XLSX)
-========================
+Mendeley fallback (v1 portal XLSX names only)
+=============================================
 1. Download from https://data.mendeley.com/datasets/zjxjnjp3xs
 2. Place .xlsx files in: {raw_dir}
 3. Run: python scripts/download_edp.py --from-mendeley
+
+Mendeley v2 filtered SCADA (Aug 2026, recommended for clean 83-column signals)
+==============================================================================
+1. https://data.mendeley.com/datasets/zjxjnjp3xs/2
+2. Four turbines (T01/T06/T07/T11), per-turbine filtered SCADA (95% and 99.9%),
+   met-mast, event log, failure log — see data/README.md
+3. No automatic importer yet (v2 layout differs from v1 XLSX map).
 
 Reference: https://github.com/sltzgs/OpenWindSCADA
 """

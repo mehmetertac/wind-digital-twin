@@ -8,8 +8,21 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_RAW = PROJECT_ROOT / "data" / "raw" / "edp"
+DATA_RAW_CARE = PROJECT_ROOT / "data" / "raw" / "care"
+DATA_RAW_CARE_WFA = DATA_RAW_CARE / "wind_farm_a"
 DATA_PROCESSED = PROJECT_ROOT / "data" / "processed"
 RESULTS_DIR = PROJECT_ROOT / "results"
+CARE_RESULTS_DIR = RESULTS_DIR / "care"
+
+# CARE-to-Compare (Zenodo v6; WF-A is real EDP Portugal)
+CARE_ZENODO_RECORD = "15846963"
+CARE_ZENODO_DOI = "10.5281/zenodo.15846963"
+CARE_ZIP_URL = f"https://zenodo.org/records/{CARE_ZENODO_RECORD}/files/CARE_To_Compare.zip"
+CARE_ZIP_MD5 = "2547b58c21ac8c242d13232860cf500c"
+CARE_WFA_RATED_KW = 2000.0
+CARE_CRITICALITY_THRESHOLD = 72
+CARE_NORMAL_STATUS_IDS: tuple[int, ...] = (0, 2)
+CARE_WFA_EXPECTED_DATASETS = 22
 
 FEATURE_COLUMNS: list[str] = [
     "Gear_Oil_Temp_Avg",

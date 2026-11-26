@@ -1,0 +1,8 @@
+sensor_name;statistics_type;description;unit;is_angle;is_counter
+sensor_0;average;Ambient temperature;C;False;False
+sensor_11;average;Temperature in gearbox bearing on high speed shaft;C;False;False
+sensor_12;average;Temperature oil in gearbox;C;False;False
+sensor_43;average;Nacelle temperature;C;False;False
+power_30;average;Grid power;kW;False;False
+wind_speed_3;average;Windspeed;m/s;False;False
+sensor_52;average;Rotor rpm;rpm;False;False

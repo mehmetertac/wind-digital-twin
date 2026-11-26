@@ -55,6 +55,8 @@ pytest tests/ -q
 
 Real EDP data: see [data/README.md](data/README.md) and `python scripts/download_edp.py --instructions`. Re-run `run_twin_pass.py --data-dir <path>` after download; figures label **real EDP** automatically.
 
+**CARE-to-Compare (benchmark):** Wind Farm A in the Zenodo release is the same EDP farm (22 events, 86 features). Download with `python scripts/download_care.py --wind-farm A`; score with [`eval/care_score.py`](src/wind_digital_twin/eval/care_score.py). Published baselines on all 95 events: autoencoder NBM ≈ 0.66, random 0.50, Isolation Forest below random ([arXiv:2404.10320](https://arxiv.org/abs/2404.10320)). Next step: score this repo’s hybrid-residual detector on WF-A.
+
 ## Architecture (shipped pipeline)
 
 ```mermaid

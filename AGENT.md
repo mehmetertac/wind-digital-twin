@@ -17,7 +17,12 @@ Guidance for agents working in **wind-digital-twin**. Read this file first, then
 | [scripts/run_pinn_heat.py](scripts/run_pinn_heat.py) | Train PINN vs data-only; writes `docs/figures/pinn_ablation.png` |
 | [data/README.md](data/README.md) | EDP provenance, synthetic fallback |
 | [notebooks/README.md](notebooks/README.md) | Notebooks are thin drivers only (PINN toy, EDA) |
-| [src/wind_digital_twin/data/](src/wind_digital_twin/data/) | Load, clean, synthetic EDP |
+| [src/wind_digital_twin/data/](src/wind_digital_twin/data/) | Load, clean, synthetic EDP; CARE WF-A loader + channel map |
+| [src/wind_digital_twin/eval/care_score.py](src/wind_digital_twin/eval/care_score.py) | CARE-to-Compare metric (vendored MIT scorer) |
+| [scripts/download_care.py](scripts/download_care.py) | Zenodo WF-A extract (HTTP range) |
+| [scripts/run_care_baselines.py](scripts/run_care_baselines.py) | WF-A trivial / IF CARE sanity run |
+| [scripts/run_care_hybrid.py](scripts/run_care_hybrid.py) | WF-A hybrid-residual CARE score |
+| [scripts/run_care_ablations.py](scripts/run_care_ablations.py) | WF-A CARE ablations (P95, persistence, minimal AE) |
 | [src/wind_digital_twin/physics/](src/wind_digital_twin/physics/) | Lumped ODE gearbox thermal model (`lumped_ode.py`, `gearbox_thermal.py`) |
 | [src/wind_digital_twin/residual/](src/wind_digital_twin/residual/) | Fusion features, learned residual corrector |
 | [src/wind_digital_twin/anomaly/](src/wind_digital_twin/anomaly/) | Physics-hybrid (Week 6) + hybrid-residual detector |
