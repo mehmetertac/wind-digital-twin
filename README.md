@@ -55,7 +55,7 @@ pytest tests/ -q
 
 Real EDP data: see [data/README.md](data/README.md) and `python scripts/download_edp.py --instructions`. Re-run `run_twin_pass.py --data-dir <path>` after download; figures label **real EDP** automatically.
 
-**CARE-to-Compare (benchmark):** Wind Farm A in the Zenodo release is the same EDP farm (22 events, 86 features). Download with `python scripts/download_care.py --wind-farm A`; score with [`eval/care_score.py`](src/wind_digital_twin/eval/care_score.py). Published baselines on all 95 events: autoencoder NBM ≈ 0.66, random 0.50, Isolation Forest below random ([arXiv:2404.10320](https://arxiv.org/abs/2404.10320)). Next step: score this repo’s hybrid-residual detector on WF-A.
+**CARE-to-Compare (benchmark):** Wind Farm A in the Zenodo release is the same EDP farm (22 events, 86 features). Download with `python scripts/download_care.py --wind-farm A`, then `python scripts/run_care_compare.py`. Scores and the earliness/reliability reading are in [CARE-to-Compare on Wind Farm A](#care-to-compare-on-wind-farm-a).
 
 ## Architecture (shipped pipeline)
 
@@ -107,18 +107,61 @@ Source: `results/residual/rmse_comparison.json` after `python scripts/run_twin_p
 
 Pre-failure **degradation** shows in the timeline residuals and anomaly score, not in this healthy RMSE chart.
 
+## CARE-to-Compare on Wind Farm A
+
+The thermal ODE and the learned residual are fit only on CARE status-normal training rows (status ids `{0, 2}`). The fit uses the most recent 12,000 rows of the first 80% of that block; the following block, up to 6,000 rows, is calibration. Prediction rows are scored and never used to fit. Each asset’s alarm threshold is the conformal rank at α = 0.01 of calibration z-scores from the other assets ([docs/EVALUATION.md](docs/EVALUATION.md)). Reproduce with `python scripts/run_care_compare.py`.
+
+| Model | CARE | 90% CI | Coverage | Accuracy | Reliability | Earliness |
+| --- | --- | --- | --- | --- | --- | --- |
+| Hybrid residual | 0.460 | 0.000–0.542 | 0.056 | 0.958 | 0.313 | 0.016 |
+| Isolation Forest (this repo) | 0.000 | 0.000–0.000 | 0.031 | 0.996 | 0.000 | 0.009 |
+| Dense autoencoder | 0.557 | 0.478–0.612 | 0.139 | 0.997 | 0.625 | 0.028 |
+| LSTM autoencoder | 0.521 | 0.422–0.590 | 0.110 | 0.954 | 0.536 | 0.052 |
+
+The 90% intervals are a 200-draw bootstrap of the 22 events (seed 0). The hybrid interval reaches 0 because a resample that drops the few detected anomalies scores 0. The published autoencoder on all 95 events is about **0.66** ([arXiv:2404.10320](https://arxiv.org/abs/2404.10320)). The table above is Wind Farm A’s 22 sub-datasets with identity-disjoint thresholds, so it is a different slice. On that slice the hybrid at **0.460** finishes behind the dense autoencoder at **0.557** and behind 0.66. The loss is Earliness and Reliability together. Hybrid earliness is **0.016**: alarms inside the labelled window are late and sparse. Reliability is **0.313**: the criticality counter reaches 72 on few anomaly events, while accuracy on normal windows stays **0.958**. The gearbox windows make that concrete — event 72 has 2 alarms, event 10 has 5, event 51 has 6 — so criticality never reaches 72 and the gearbox-only CARE score is **0**. The dense autoencoder reaches reliability **0.625** and earliness **0.028** with accuracy **0.997**. The LSTM autoencoder has the highest earliness here (**0.052**) and CARE **0.521**. This repo’s Isolation Forest keeps accuracy at **0.996** and reliability at **0**, so CARE is **0**. A lower threshold would raise earliness and reliability by spending normal-window accuracy; that tradeoff is why the hybrid does not clear 0.66 on this farm. On the locked Farm A identities `{13, 21}`, with the threshold taken from the other assets only, hybrid reliability is **0** and CARE is **0**.
+
+### What was tried on the hybrid
+
+The baseline hybrid fits the last 12,000 normal rows, which is often one season, then scores two gearbox temperatures with an Isolation Forest. The rise models fit `T − T_nac` on a five-knot power spline, rotor speed, pitch, and nacelle temperature over the whole earlier normal block. Each channel becomes an identity-disjoint conformal p-value, and the alarm is the Bonferroni min-p at α = 0.01 (`p < α / n_channels`), stored as `−log10(p)`. A straight power term left a high-load bias: the earlier locked score of **0.523** on turbines `{13, 21}` came from `Hyd_Oil_Temp_Avg` at about 0.85 pu, and the same residual fired on normal event 92. With the spline, the event 71 January window has a mean rise residual of **0.06 °C** (oil) and **0.13 °C** (bearing), and every 0.2 pu fit-block bin on that event stays within **0.03 °C**. Dropping the nacelle term still leaves that window about **4.8 °C** hot.
+
+| Model | CARE | 90% CI | Coverage | Accuracy | Reliability | Earliness |
+| --- | --- | --- | --- | --- | --- | --- |
+| Gearbox oil and bearing, spline, Bonferroni | 0.000 | 0.000–0.000 | 0.017 | 0.999 | 0.000 | 0.004 |
+| Fifteen thermal channels, spline, Bonferroni | 0.517 | 0.000–0.577 | 0.116 | 0.965 | 0.500 | 0.040 |
+| Min-p of those channels and the dense autoencoder | 0.518 | 0.000–0.577 | 0.116 | 0.966 | 0.500 | 0.040 |
+| Alarm if either the fifteen-channel score or the dense autoencoder fires | 0.599 | 0.532–0.645 | 0.223 | 0.962 | 0.781 | 0.067 |
+
+Paired with the same resamples, dense-autoencoder CARE minus the original hybrid is **0.028–0.575**. Dense minus the fifteen-channel rise is **−0.085–0.590**, so the rise point of **0.517** does not clear **0.557**. The min-p fusion stays at **0.518** because the autoencoder and the rise rarely disagree once both are on a probability scale. The alarm OR reaches **0.599** (interval **0.532–0.645**) by spending accuracy, which falls to **0.962**, and raising earliness to **0.067**.
+
+An EWMA of 36 samples on the score, the same span the residual features already use, sits beside those rows. Leave-one-turbine-out CARE becomes **0.451** (hybrid), **0.476** (Isolation Forest), **0.534** (dense autoencoder), **0.516** (LSTM), **0.462** (gearbox rise), **0.522** (fifteen channels), **0.517** (min-p fusion), and **0.591** (alarm OR).
+
+On the locked turbines `{13, 21}` the fifteen-channel score is **0.458** (interval **0.351–0.532**), reliability **0.400**, earliness **0.077**, accuracy **0.800**. Hydraulic event 45 still has 156 alarms and normal event 92 still has 75, so the pair is a mixed detection. The dense autoencoder on that pair stays at CARE **0**. The repo Isolation Forest scores **0.555** there, with interval **0.000–0.684**, while its leave-one-turbine-out score remains **0**.
+
+Gearbox-only CARE is **0** for the original hybrid and for every rise variant. Inside the labelled windows, events 10 and 72 have no fifteen-channel rise alarm, and event 51 has 11, short of criticality 72. The dense autoencoder’s gearbox-only score is **0.576**. The hybrid’s job on Wind Farm A is the other thermal subsystems. A longer SCADA history, through the Mendeley v2 importer, is what can test whether those gearbox failures have a thermal precursor outside the CARE window.
+
+Anomaly prediction windows are partly or entirely outside status ids `{0, 2}` (eight of the twelve anomaly windows have none), while normal windows are entirely status 0. Scoring only status-normal rows therefore holds the criticality counter for the labelled fault, and that rule scores CARE **0**. `status_type_id` is excluded from `numeric_feature_matrix` and from `operating_frame`.
+
 ## Gearbox RUL (probabilistic + conformal)
 
-Daily aggregates of hybrid residuals, anomaly score, and θ features feed LightGBM quantiles at **P10/P50/P90**, widened with **MAPIE CQR** at 80%/90%. Evaluation is **leave-one-failure-out** on four catalogued EDP gearbox events (three turbines). Design: [grid-gnn-faults/docs/RUL_DESIGN.md](https://github.com/mehmetertac/grid-gnn-faults/blob/main/docs/RUL_DESIGN.md).
+Daily aggregates of hybrid residuals, anomaly score, and θ features feed LightGBM quantiles at **P10/P50/P90**, widened with **MAPIE CQR** at 80%/90%. The numbers below are leave-one-failure-out on **CARE Wind Farm A**, which is the real EDP farm with anonymized asset ids. The local `data/raw/edp` signals are the synthetic stand-in (the failure CSVs there are a 7-row sketch, not the 28-row 2016–17 log). The published log’s four gearbox lines are T01, T06, and T09 twice; WF-A does not carry those turbine names. It does carry three gearbox labels. Event 72 (gearbox failure) overlaps event 51 (gearbox bearings damaged) on asset 21, so the LOFO table keeps the earlier onset and does not treat 72 as a second failure. Failure time is the CARE `event_start`. Conformal quantiles are fit on the other assets ([docs/EVALUATION.md](docs/EVALUATION.md)). Design of the quantile head: [grid-gnn-faults/docs/RUL_DESIGN.md](https://github.com/mehmetertac/grid-gnn-faults/blob/main/docs/RUL_DESIGN.md). Reproduce with `python scripts/run_care_rul.py`, which calls `evaluate_quantile_rul.py`’s library path (`evaluate_quantile_model` and `evaluate_conformal_rul`).
 
-| Event | Turbine | LOFO MAE (P50) | Pinball q0.5 | Raw [P10,P90] coverage | CQR 80% coverage | P10 first below 14 d (days before failure) |
-| --- | --- | --- | --- | --- | --- | --- |
-| T01 pump damage | T01 | 44.50 | 22.25 | 0.01 | 0.01 | none |
-| T06 bearing damage | T06 | 44.50 | 22.25 | 0.01 | 0.44 | none |
-| T09 repair | T09 | 44.50 | 22.25 | 0.01 | 0.87 | none |
-| T09 noise | T09 | 44.50 | 22.25 | 0.01 | 0.01 | none |
+**Gearbox only** (2 independent onsets):
 
-**Synthetic EDP** (five turbines, four catalog gearbox events): produced by `python scripts/run_twin.py --fleet` in [grid-gnn-faults](https://github.com/mehmetertac/grid-gnn-faults) on this twin’s scored series, then `python scripts/evaluate_quantile_rul.py --scored … --failures …`. Not Hack-the-Wind field data and not a crane-booking SLA. **`none`** means pessimistic P10 never dropped below 14 days in the held-out window on this run (quantiles sat on the 90-day cap). **Coverage caveat:** split conformal guarantees are **marginal**; with four events, small calibration tails, and non-exchangeable run-to-failure windows, gaps versus 80%/90% are expected — not a tuning knob ([RUL_DESIGN.md](https://github.com/mehmetertac/grid-gnn-faults/blob/main/docs/RUL_DESIGN.md)).
+| Event | Asset | Pinball 0.1 | Pinball 0.5 | Pinball 0.9 | Raw [P10, P90] | CQR 80% | CQR 90% | P10 first below 14 d | P50 first below 14 d | P90 first below 14 d |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 10 Gearbox failure | 10 | 15.78 | 22.25 | 4.45 | 0.01 | 0.01 | 0.01 | 39 | never crossed on event 10 | never crossed on event 10 |
+| 51 Gearbox bearings damaged | 21 | 19.32 | 22.25 | 4.45 | 0.01 | 0.01 | 0.01 | 88 | never crossed on event 51 | never crossed on event 51 |
+
+**Component-agnostic** (generator bearing + gearbox; 4 onsets):
+
+| Event | Asset | Pinball 0.1 | Pinball 0.5 | Pinball 0.9 | Raw [P10, P90] | CQR 80% | CQR 90% | P10 first below 14 d | P50 first below 14 d | P90 first below 14 d |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 Generator bearing failure | 0 | 9.42 | 22.25 | 4.45 | 0.17 | 0.17 | 0.29 | 85 | never crossed on event 0 | never crossed on event 0 |
+| 40 Generator bearing failure | 10 | 28.05 | 22.25 | 4.45 | 0.01 | 0.01 | 0.01 | 34 | never crossed on event 40 | never crossed on event 40 |
+| 10 Gearbox failure | 10 | 13.79 | 22.25 | 4.45 | 0.01 | 0.52 | 0.63 | 53 | never crossed on event 10 | never crossed on event 10 |
+| 51 Gearbox bearings damaged | 21 | 13.18 | 22.25 | 4.45 | 0.13 | 0.51 | 0.69 | 88 | never crossed on event 51 | never crossed on event 51 |
+
+Pooled component-agnostic coverage is raw **0.08**, CQR 80% **0.30**, CQR 90% **0.41**. P50 and P90 stay at the 90-day cap on every day of every window, so pinball at 0.5 is **22.25** (half of MAE 44.5, the error of a constant-cap median on a countdown from 90 to 1). P10 does go under 14 days; the integer is the first such day in the 90-day window, and on these folds that happens on only one or two days. This LightGBM build rejects monotone constraints on the quantile objective, so the fit falls back to an unconstrained booster. Split conformal coverage is a marginal guarantee; with two or three assets and cap-heavy labels, a gap versus 80% or 90% is the expected small-sample result ([RUL_DESIGN.md](https://github.com/mehmetertac/grid-gnn-faults/blob/main/docs/RUL_DESIGN.md)).
 
 ![TreeSHAP — mean |SHAP| by sensor on P10 RUL (synthetic service export)](docs/figures/shap_sensor_ranking.png)
 
@@ -173,7 +216,7 @@ Regenerate PNG/GIF (residual + P10 SHAP bar): `python service/scripts/generate_d
 
 ## Limitations (honest)
 
-- **Few failure events** — four gearbox log lines on three turbines; RUL and conformal coverage are demonstration-grade, not fleet SLAs.
+- **Few failure events** — CARE Wind Farm A yields two independent gearbox onsets after merging an overlap, or four when generator-bearing events are pooled. RUL and conformal coverage are demonstration-grade, not fleet SLAs.
 - **Marginal conformal coverage** — CQR intervals are honest on held-out windows but not a guarantee on the next turbine; say this before being asked.
 - **No vibration / CMS** in EDP — thermal SCADA only; envelope and band energy often lead temperature by days to weeks on real gearboxes.
 - **Single thermal failure mode** — one score on oil and HSS bearing temperature; not a classifier for pump vs bearing vs noise (T01/T06/T09 are different root causes in the log).

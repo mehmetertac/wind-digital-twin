@@ -188,11 +188,25 @@ class CAREScore:
         )
         max_criticality = float(np.max(criticality))
 
-        metrics = self._calculate_basic_metrics(
-            ground_truth=ground_truth[normal_index],
-            predicted_anomalies=predicted_anomalies[normal_index],
-            event_label=event_label,
-        )
+        scored_truth = ground_truth[normal_index]
+        scored_pred = predicted_anomalies[normal_index]
+        if scored_truth.empty:
+            # Every row was held out of the operating mask, so there is no
+            # confusion matrix. Criticality above already stayed at zero.
+            metrics = {
+                "f_beta_score": np.nan,
+                "accuracy": np.nan,
+                "tn": 0,
+                "fp": 0,
+                "fn": 0,
+                "tp": 0,
+            }
+        else:
+            metrics = self._calculate_basic_metrics(
+                ground_truth=scored_truth,
+                predicted_anomalies=scored_pred,
+                event_label=event_label,
+            )
 
         if event_id is None:
             event_id = len(self._evaluated_events)

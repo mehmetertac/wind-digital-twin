@@ -40,9 +40,11 @@ Sanity baselines (random ≈ 0.5 CARE on full 95-event benchmark; WF-A only):
 python scripts/run_care_baselines.py
 python scripts/run_care_hybrid.py
 python scripts/run_care_ablations.py
+python scripts/run_care_compare.py
+python scripts/run_care_rul.py
 ```
 
-Ablation scores (hybrid P95/AE/persistence): `results/care/wfa_ablations.json`.
+`run_care_compare.py` fits the thermal twin, this repo’s Isolation Forest, and dense/LSTM autoencoders on status-normal rows only, then sets each asset’s threshold from the other assets. `run_care_rul.py` runs leave-one-failure-out quantile RUL on the gearbox labels and on the pooled generator-bearing + gearbox labels. Write-up: [docs/EVALUATION.md](../docs/EVALUATION.md). Earlier ablation scores: `results/care/wfa_ablations.json`.
 
 ## Synthetic fallback (CI / local)
 

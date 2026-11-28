@@ -23,6 +23,9 @@ Guidance for agents working in **wind-digital-twin**. Read this file first, then
 | [scripts/run_care_baselines.py](scripts/run_care_baselines.py) | WF-A trivial / IF CARE sanity run |
 | [scripts/run_care_hybrid.py](scripts/run_care_hybrid.py) | WF-A hybrid-residual CARE score |
 | [scripts/run_care_ablations.py](scripts/run_care_ablations.py) | WF-A CARE ablations (P95, persistence, minimal AE) |
+| [scripts/run_care_compare.py](scripts/run_care_compare.py) | WF-A hybrid vs IF vs dense/LSTM AE, identity-disjoint thresholds |
+| [scripts/run_care_rul.py](scripts/run_care_rul.py) | CARE WF-A leave-one-failure-out quantile RUL |
+| [docs/EVALUATION.md](docs/EVALUATION.md) | Why thresholds and conformal quantiles are identity-disjoint |
 | [src/wind_digital_twin/physics/](src/wind_digital_twin/physics/) | Lumped ODE gearbox thermal model (`lumped_ode.py`, `gearbox_thermal.py`) |
 | [src/wind_digital_twin/residual/](src/wind_digital_twin/residual/) | Fusion features, learned residual corrector |
 | [src/wind_digital_twin/anomaly/](src/wind_digital_twin/anomaly/) | Physics-hybrid (Week 6) + hybrid-residual detector |

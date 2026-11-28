@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -17,7 +17,6 @@ from wind_digital_twin.config import (
     DEFAULT_THRESHOLD_PERCENTILE,
     THERMAL_MIN_POWER_KW,
 )
-from wind_digital_twin.data.care_channels import load_frozen_channel_map
 from wind_digital_twin.data.clean import clean_turbine_df
 from wind_digital_twin.data.load_care import CareDataset, to_twin_frame
 from wind_digital_twin.eval.care_score import CAREScore
@@ -30,6 +29,15 @@ CARE_META = frozenset({"id", "time_stamp", "asset_id", "train_test", "status_typ
 def is_gearbox_anomaly(description: str) -> bool:
     text = str(description).lower()
     return "gearbox" in text or "gear box" in text
+
+
+def is_generator_bearing(description: str) -> bool:
+    text = str(description).lower()
+    return "generator" in text and "bearing" in text
+
+
+def is_drivetrain_anomaly(description: str) -> bool:
+    return is_gearbox_anomaly(description) or is_generator_bearing(description)
 
 
 def event_in_care_scope(ds: CareDataset, *, gearbox_only: bool) -> bool:
